@@ -1,0 +1,12 @@
+{
+  "name": "datara",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:teacher": "npm --prefix teacher install",
+    "install:admin": "npm --prefix admin install",
+    "install:all": "npm run install:teacher && npm run install:admin",
+    "dev:teacher": "npm --prefix teacher run dev",
+    "dev:admin": "npm --prefix admin run dev"
+  }
+}

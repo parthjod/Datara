@@ -1,0 +1,101 @@
+.page {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--sky);
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 2.5rem);
+  width: 100%;
+  max-width: 440px;
+  animation: cardIn .7s var(--ease) both;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.logo {
+  font-family: 'UnifrakturCook', serif;
+  font-size: clamp(1.8rem, 3vw, 2.2rem);
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: .01em;
+  margin-bottom: .5rem;
+}
+
+.tagline {
+  font-size: .9rem;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  margin-bottom: 1.25rem;
+}
+
+.field label {
+  font-size: .85rem;
+  font-weight: 500;
+  letter-spacing: .01em;
+}
+
+.field input {
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: .75rem 1rem;
+  font-size: .95rem;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  outline: none;
+  transition: border-color .3s ease, box-shadow .3s ease;
+  width: 100%;
+}
+
+.field input:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(11,11,12,.08);
+}
+
+.error {
+  color: var(--danger);
+  font-size: .85rem;
+  margin: -.5rem 0 1rem;
+}
+
+.submitBtn {
+  width: 100%;
+  background: var(--ink);
+  color: #fff;
+  border-radius: 8px;
+  padding: .85rem;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: transform .4s var(--ease), box-shadow .4s var(--ease);
+}
+
+.submitBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.submitBtn:active { transform: translateY(0); }
+
+.note {
+  text-align: center;
+  font-size: .78rem;
+  color: var(--muted);
+  margin-top: 1.25rem;
+}

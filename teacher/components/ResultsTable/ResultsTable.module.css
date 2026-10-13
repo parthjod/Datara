@@ -1,0 +1,213 @@
+.placeholder,
+.loading,
+.denied,
+.error {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  padding: 3rem;
+  text-align: center;
+}
+
+.placeholder {
+  border: 2px dashed var(--border);
+  background: transparent;
+}
+
+.placeholderIcon {
+  font-size: 2.5rem;
+  opacity: 0.35;
+  margin-bottom: 1rem;
+}
+
+.placeholderText {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--border);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin: 0 auto 1.25rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingText {
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.denied {
+  border: 2px solid rgba(192, 57, 43, 0.15);
+  background: var(--danger-bg);
+}
+
+.deniedIcon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.deniedTitle {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: var(--danger);
+}
+
+.deniedBody {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.error {
+  border: 2px solid rgba(192, 57, 43, 0.15);
+  background: var(--card);
+}
+
+.errorTitle {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 1.2rem;
+  color: var(--danger);
+  margin-bottom: 0.5rem;
+}
+
+.errorText {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.resultsCard {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  animation: fadeUp 0.4s var(--ease) both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.resultsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.resultsTitle {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.countPill {
+  background: var(--sky);
+  border-radius: 99px;
+  padding: 0.2rem 0.7rem;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.8rem;
+}
+
+.exportBtn {
+  background: var(--ink);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.6rem 1.4rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+
+.exportBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.tableWrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  min-width: 600px;
+}
+
+.tableWrap thead th {
+  text-align: left;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.tableWrap tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s ease;
+  animation: rowIn 0.4s var(--ease) calc(var(--row-i, 0) * 0.06s) both;
+}
+
+@keyframes rowIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.tableWrap tbody tr:hover {
+  background: var(--surface);
+}
+
+.tableWrap tbody tr:last-child {
+  border-bottom: none;
+}
+
+.tableWrap tbody td {
+  padding: 0.9rem 1.25rem;
+  white-space: nowrap;
+}
+
+.more {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}

@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#141518" />
+      <stop offset="50%" stop-color="#0b0b0d" />
+      <stop offset="100%" stop-color="#050506" />
+    </linearGradient>
+
+    <!-- Border Gradient -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255, 255, 255, 0.32)" />
+      <stop offset="50%" stop-color="rgba(219, 230, 238, 0.12)" />
+      <stop offset="100%" stop-color="rgba(255, 255, 255, 0.05)" />
+    </linearGradient>
+
+    <!-- Metallic Platinum / Silver Luxury D Gradient -->
+    <linearGradient id="dGrad" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="40%" stop-color="#E8F1F7" />
+      <stop offset="70%" stop-color="#BDD3E4" />
+      <stop offset="100%" stop-color="#8EAEC4" />
+    </linearGradient>
+
+    <!-- Ambient Glow behind D -->
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8EAEC4" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#8EAEC4" stop-opacity="0" />
+    </radialGradient>
+
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="4" filter="url(#shadow)" />
+
+  <!-- Ambient Glow -->
+  <circle cx="256" cy="256" r="170" fill="url(#glow)" />
+
+  <!-- Premium Serif 'D' Path -->
+  <g transform="translate(256, 256) scale(1.05) translate(-256, -256)">
+    <path d="M 160 120 
+             L 265 120 
+             C 345 120, 395 165, 395 256 
+             C 395 347, 345 392, 265 392 
+             L 160 392 
+             L 160 362 
+             L 182 362 
+             L 182 150 
+             L 160 150 
+             Z
+             M 218 154 
+             L 218 358 
+             L 260 358 
+             C 318 358, 355 324, 355 256 
+             C 355 188, 318 154, 260 154 
+             Z" 
+          fill="url(#dGrad)" 
+          fill-rule="evenodd" />
+
+    <!-- Accent Diamond Sparkle -->
+    <path d="M 368 140 L 374 153 L 387 159 L 374 165 L 368 178 L 362 165 L 349 159 L 362 153 Z" 
+          fill="#FFFFFF" 
+          opacity="0.9" />
+  </g>
+</svg>

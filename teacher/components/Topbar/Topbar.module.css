@@ -1,0 +1,55 @@
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(240, 245, 248, 0.88);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border-bottom: 1px solid var(--border);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem var(--pad-x);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo {
+  font-family: 'UnifrakturCook', serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: 0.01em;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.teacherName {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.logoutBtn {
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.logoutBtn:hover {
+  background: var(--surface);
+  border-color: rgba(11, 11, 12, 0.2);
+}
+
+@media (max-width: 768px) {
+  .teacherName {
+    display: none;
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "pramod.mali@mitwpu.edu.in": {
+    "panels": [
+      "D",
+      "F",
+      "G",
+      "I",
+      "J"
+    ],
+    "years": [
+      "TY",
+      "SY"
+    ],
+    "departments": [
+      "CSE",
+      "CSF"
+    ],
+    "active": true
+  },
+  "sneha.kulkarni@mitwpu.edu.in": {
+    "panels": [
+      "A",
+      "B",
+      "C"
+    ],
+    "years": [
+      "TY",
+      "SY"
+    ],
+    "departments": [
+      "CSE"
+    ],
+    "active": true
+  },
+  "rahul.deshmukh@mitwpu.edu.in": {
+    "panels": [
+      "E",
+      "F",
+      "G",
+      "H"
+    ],
+    "years": [
+      "TY"
+    ],
+    "departments": [
+      "CSE"
+    ],
+    "active": true
+  }
+}

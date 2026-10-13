@@ -1,0 +1,60 @@
+.page {
+  min-height: 100svh;
+  background: var(--sky);
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem var(--pad-x) 3rem;
+}
+
+.section {
+  opacity: 0;
+  animation: rise 0.7s var(--ease) forwards;
+}
+
+.section:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.section:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.section:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.restrictedBanner {
+  background: var(--danger-bg);
+  border: 1.5px solid rgba(192, 57, 43, 0.25);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 0.9rem;
+  color: var(--danger);
+  line-height: 1.45;
+  animation: slideDown 0.3s var(--ease) both;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,276 @@
+.infoCard {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--sky);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  color: var(--ink);
+}
+
+.teacherMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.teacherName {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 400;
+  margin: 0 0 0.25rem;
+}
+
+.teacherEmail {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.teacherDept {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.toggleWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.toggleLabel {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.permCard {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.permCardHeader {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.permCardTitle {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin: 0;
+}
+
+.permCardSub {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+.selectRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-bottom: 0.875rem;
+}
+
+.selectLink {
+  font-size: 0.82rem;
+  color: var(--muted);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.selectLink:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.filterRow {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.filterGroup {
+  flex: 1;
+  min-width: 220px;
+}
+
+.filterGroupTitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+.chipRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filterChip {
+  padding: 0.5rem 0.875rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+  cursor: pointer;
+  background: var(--card);
+  transition: all 0.25s var(--ease);
+  user-select: none;
+}
+
+.filterChip:hover {
+  background: var(--surface);
+  border-color: rgba(11, 11, 12, 0.2);
+}
+
+.filterChip.selected {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.summaryCard {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.summaryTitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.875rem;
+}
+
+.summaryRow {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  margin-bottom: 0.45rem;
+}
+
+.summaryRow:last-child {
+  margin-bottom: 0;
+}
+
+.summaryLabel {
+  color: var(--muted);
+  min-width: 110px;
+}
+
+.summaryVal {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.saveRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.saveStatus {
+  font-size: 0.875rem;
+  color: var(--success);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  font-weight: 500;
+}
+
+.saveStatus.visible {
+  opacity: 1;
+}
+
+.btnGroup {
+  display: flex;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+.discardBtn {
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.875rem;
+  background: var(--card);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.discardBtn:hover {
+  background: var(--surface);
+  border-color: rgba(11, 11, 12, 0.2);
+}
+
+.saveBtn {
+  background: var(--ink);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.65rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+
+.saveBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 600px) {
+  .saveRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .btnGroup {
+    flex-direction: column;
+    width: 100%;
+    margin-left: 0;
+  }
+  .discardBtn,
+  .saveBtn {
+    width: 100%;
+    text-align: center;
+  }
+}
