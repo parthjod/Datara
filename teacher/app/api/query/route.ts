@@ -19,7 +19,9 @@ function getFilePath(): string {
   return parentPath
 }
 
-function getTeacherLivePermissions(email: string): TeacherPermissions {
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+
+async function getTeacherLivePermissions(email: string): Promise<TeacherPermissions> {
   const defaultPerms: TeacherPermissions = {
     panels: ['D', 'J'],
     years: ['TY'],
@@ -27,6 +29,27 @@ function getTeacherLivePermissions(email: string): TeacherPermissions {
     active: true,
   }
 
+  // 1. Try Supabase in production/cloud if configured
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('faculty_permissions')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (!error && data) {
+        return {
+          panels: data.panels || [],
+          years: data.years || [],
+          departments: data.departments || [],
+          active: Boolean(data.active),
+        }
+      }
+    } catch {}
+  }
+
+  // 2. Fallback to local permissions.json
   try {
     const filePath = getFilePath()
     if (fs.existsSync(filePath)) {
@@ -74,7 +97,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Check live teacher authorization
-    const perms = getTeacherLivePermissions(teacherEmail)
+    const perms = await getTeacherLivePermissions(teacherEmail)
     if (!perms.active) {
       return NextResponse.json<QueryApiResponse>(
         {

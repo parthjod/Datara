@@ -26,20 +26,50 @@ export function getTeacherPermissions(email: string): TeacherPermissions {
   return all[email] || { panels: ['D', 'J'], years: ['TY'], departments: ['CSE'], active: true }
 }
 
+import { supabase, isSupabaseConfigured } from './supabase'
+
 export async function fetchLiveTeacherPermissions(email: string): Promise<TeacherPermissions> {
-  if (typeof window === 'undefined') return getTeacherPermissions(email)
-  try {
-    const res = await fetch('/api/permissions', { cache: 'no-store' })
-    if (res.ok) {
-      const data = await res.json()
-      if (data && typeof data === 'object') {
-        localStorage.setItem(KEY, JSON.stringify(data))
-        if (data[email]) return data[email]
+  // 1. Try Supabase in production/cloud if configured
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('faculty_permissions')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (!error && data) {
+        const perms: TeacherPermissions = {
+          panels: data.panels || [],
+          years: data.years || [],
+          departments: data.departments || [],
+          active: Boolean(data.active),
+        }
+        if (typeof window !== 'undefined') {
+          const all = getAllPermissions()
+          all[email] = perms
+          localStorage.setItem(KEY, JSON.stringify(all))
+        }
+        return perms
       }
-    }
-  } catch {
-    // fallback to localStorage
+    } catch {}
   }
+
+  // 2. Try shared backend API route (local dev)
+  if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch('/api/permissions', { cache: 'no-store' })
+      if (res.ok) {
+        const data = await res.json()
+        if (data && typeof data === 'object') {
+          localStorage.setItem(KEY, JSON.stringify(data))
+          if (data[email]) return data[email]
+        }
+      }
+    } catch {}
+  }
+
+  // 3. Fallback to localStorage / defaults
   return getTeacherPermissions(email)
 }
 

@@ -48,7 +48,7 @@ Datara/
 
 ### Admin Portal
 - **URL**: `http://localhost:3001/login`
-- **Email**: `admin@gmail.com`
+- **Email**: `admin@mitwpu.edu.in`
 - **Password**: `admin`
 
 ---
@@ -72,15 +72,15 @@ cd ../admin && npm install
   - `NEXT_PUBLIC_GEMINI_API_KEY`: Enter your Google Gemini API key. *(Note: A built-in fallback parser is included so queries test out of the box even before providing an API key)*
   - `NEXT_PUBLIC_TEACHER_EMAIL`: `pramod.mali@mitwpu.edu.in`
   - `NEXT_PUBLIC_TEACHER_PASSWORD`: `pramodsir11`
-  - `NEXT_PUBLIC_APP_NAME`: `DataQuery`
+  - `NEXT_PUBLIC_APP_NAME`: `Datara`
   - `NEXT_PUBLIC_INSTITUTE_DOMAIN`: `mitwpu.edu.in`
   - `NEXT_PUBLIC_PERMISSIONS_STORAGE_KEY`: `dq_teacher_permissions`
 
 - `admin/.env.local`:
-  - `NEXT_PUBLIC_ADMIN_EMAIL`: `admin@gmail.com`
+  - `NEXT_PUBLIC_ADMIN_EMAIL`: `admin@mitwpu.edu.in`
   - `NEXT_PUBLIC_ADMIN_PASSWORD`: `admin`
   - `NEXT_PUBLIC_PERMISSIONS_STORAGE_KEY`: `dq_teacher_permissions`
-  - `NEXT_PUBLIC_APP_NAME`: `DataQuery`
+  - `NEXT_PUBLIC_APP_NAME`: `Datara`
   - `NEXT_PUBLIC_INSTITUTE_DOMAIN`: `mitwpu.edu.in`
 
 ### 3. Start Development Servers

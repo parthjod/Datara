@@ -71,24 +71,63 @@ export function getAllPermissions(): PermissionsMap {
   }
 }
 
+import { supabase, isSupabaseConfigured } from './supabase'
+
 export function saveAllPermissions(data: PermissionsMap): void {
   if (typeof window === 'undefined') return
   localStorage.setItem(KEY, JSON.stringify(data))
 
-  // Persist to shared backend file via local API route
+  // 1. Sync to Supabase in production/cloud if configured
+  if (isSupabaseConfigured && supabase) {
+    const rows = Object.entries(data).map(([email, p]) => ({
+      email,
+      panels: p.panels,
+      years: p.years,
+      departments: p.departments,
+      active: p.active,
+      updated_at: new Date().toISOString(),
+    }))
+    Promise.resolve(supabase.from('faculty_permissions').upsert(rows))
+      .then(({ error }: any) => {
+        if (error) console.warn('Supabase upsert warning:', error.message)
+      })
+      .catch(() => {})
+  }
+
+  // 2. Persist to shared backend file via local API route (local dev)
   fetch('/api/permissions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   }).catch(() => {})
 
-  // Push directly to teacher dashboard API on port 3000 for instant live cross-origin reflection
+  // 3. Push directly to teacher dashboard API on port 3000 for instant live cross-origin reflection
   fetch('http://localhost:3000/api/permissions', {
     method: 'POST',
     mode: 'cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   }).catch(() => {})
+}
+
+export async function fetchSupabasePermissions(): Promise<PermissionsMap | null> {
+  if (!isSupabaseConfigured || !supabase) return null
+  try {
+    const { data, error } = await supabase.from('faculty_permissions').select('*')
+    if (error || !data) return null
+    const map: PermissionsMap = {}
+    data.forEach((row: any) => {
+      map[row.email] = {
+        panels: row.panels || [],
+        years: row.years || [],
+        departments: row.departments || [],
+        active: Boolean(row.active),
+      }
+    })
+    return map
+  } catch {
+    return null
+  }
 }
 
 export function getTeacherPermissions(email: string): TeacherPermissions {

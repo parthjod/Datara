@@ -13,6 +13,7 @@ import {
   saveTeacherPermissions,
   saveAllPermissions,
   addTeacher,
+  fetchSupabasePermissions,
 } from '@/lib/permissions'
 import { getAdminSession, clearAdminSession } from '@/lib/auth'
 import { Topbar } from '@/components/Topbar/Topbar'
@@ -97,22 +98,30 @@ export default function AdminPage() {
       selectTeacher(merged[0].email, merged)
     }
 
-    // Also fetch latest synced permissions from shared backend
+    // Fetch latest synced permissions from Supabase or shared backend
+    const syncPermissions = (data: Record<string, TeacherPermissions> | null) => {
+      if (data && Object.keys(data).length > 0) {
+        localStorage.setItem('dq_teacher_permissions', JSON.stringify(data))
+        setTeachers((prev) => {
+          const updated = prev.map((t) =>
+            data[t.email] ? { ...t, permissions: data[t.email] } : t
+          )
+          if (updated.length > 0) {
+            selectTeacher(updated[0].email, updated)
+          }
+          return updated
+        })
+      }
+    }
+
+    fetchSupabasePermissions().then((data) => {
+      if (data) syncPermissions(data)
+    })
+
     fetch('/api/permissions')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data && Object.keys(data).length > 0) {
-          localStorage.setItem('dq_teacher_permissions', JSON.stringify(data))
-          setTeachers((prev) => {
-            const updated = prev.map((t) =>
-              data[t.email] ? { ...t, permissions: data[t.email] } : t
-            )
-            if (updated.length > 0) {
-              selectTeacher(updated[0].email, updated)
-            }
-            return updated
-          })
-        }
+        if (data) syncPermissions(data)
       })
       .catch(() => {})
   }, [router])

@@ -22,10 +22,10 @@ export default function AdminLoginPage() {
     e.preventDefault()
     setError('')
 
-    const validEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'admin@gmail.com'
+    const validEmail = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'admin@mitwpu.edu.in').toLowerCase()
     const validPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'admin'
 
-    if (email.trim().toLowerCase() !== validEmail.toLowerCase() || password !== validPassword) {
+    if (email.trim().toLowerCase() !== validEmail || password !== validPassword) {
       setError('Invalid admin credentials. Please verify email and password.')
       return
     }
@@ -54,7 +54,7 @@ export default function AdminLoginPage() {
               type="email"
               autoComplete="email"
               required
-              placeholder="admin@gmail.com"
+              placeholder="admin@mitwpu.edu.in"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />

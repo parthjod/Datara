@@ -11,6 +11,7 @@ import { QueryBox } from '@/components/QueryBox/QueryBox'
 import { ResultsTable } from '@/components/ResultsTable/ResultsTable'
 import { ExportModal } from '@/components/ExportModal/ExportModal'
 import { Toast } from '@/components/Toast/Toast'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import styles from './dashboard.module.css'
 
 const LOADING_MESSAGES = [
@@ -60,7 +61,50 @@ export default function DashboardPage() {
       }
     })
 
-    // Listen for push events when admin saves changes — NO continuous polling!
+    // 1. Supabase Realtime subscription (for Vercel / production multi-domain sync)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let realtimeChannel: any = null
+    if (isSupabaseConfigured && supabase) {
+      try {
+        realtimeChannel = supabase
+          .channel('faculty_permissions_realtime')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'faculty_permissions' },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (payload: any) => {
+              const row = payload.new
+              if (row && row.email === activeSession.email) {
+                const livePerms = {
+                  panels: row.panels || [],
+                  years: row.years || [],
+                  departments: row.departments || [],
+                  active: Boolean(row.active),
+                }
+
+                if (lastActiveRef.current && !livePerms.active) {
+                  setIsLiveActive(false)
+                  lastActiveRef.current = false
+                  setDeniedReason('Your faculty account access is currently deactivated by the administrator.')
+                  setResultsState('denied')
+                  showToast('⚠️ Access Revoked: An administrator has deactivated your account.')
+                } else if (!lastActiveRef.current && livePerms.active) {
+                  setIsLiveActive(true)
+                  lastActiveRef.current = true
+                  setDeniedReason('')
+                  setResultsState('empty')
+                  showToast('✓ Access Restored: Your faculty querying access is active.')
+                } else {
+                  showToast('✓ Faculty permissions updated by administrator.')
+                }
+              }
+            }
+          )
+          .subscribe()
+      } catch {}
+    }
+
+    // 2. Local push stream listener (for local dev without polling)
     let eventSource: EventSource | null = null
     try {
       eventSource = new EventSource('/api/permissions/stream')
@@ -95,6 +139,7 @@ export default function DashboardPage() {
 
     return () => {
       if (eventSource) eventSource.close()
+      if (realtimeChannel && supabase) supabase.removeChannel(realtimeChannel)
     }
   }, [router])
 
