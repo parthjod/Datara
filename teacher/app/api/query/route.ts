@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
-import { queryGemini } from '@/lib/gemini'
+import { parseOfflineQuery } from '@/lib/parser'
 import { executePostgresQuery } from '@/lib/db'
 import { QueryApiResponse, Student, TeacherPermissions } from '@/types'
 
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     const teacherEmail =
       typeof body.teacherEmail === 'string' && body.teacherEmail.trim()
         ? body.teacherEmail.trim()
-        : (process.env.NEXT_PUBLIC_TEACHER_EMAIL || 'pramod.mali@mitwpu.edu.in')
+        : (process.env.NEXT_PUBLIC_TEACHER_EMAIL || 'teacher@mitwpu.edu.in')
 
     if (!query) {
       return NextResponse.json<QueryApiResponse>(
@@ -112,17 +112,17 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 2. Send query to AI with only schema column data & faculty allowed panels
-    const geminiResult = await queryGemini(query, perms.panels)
+    // 2. Parse query using local offline parser with faculty allowed panels
+    const parsedResult = parseOfflineQuery(query, perms.panels)
 
     // 3. Check if query is allowed by permission policy
-    if (!geminiResult.allowed) {
+    if (!parsedResult.allowed) {
       return NextResponse.json<QueryApiResponse>(
         {
           allowed: false,
-          sql: geminiResult.sql,
-          interpretation: geminiResult.interpretation,
-          reason: geminiResult.reason || 'You do not have access to that student data.',
+          sql: parsedResult.sql,
+          interpretation: parsedResult.interpretation,
+          reason: parsedResult.reason || 'You do not have access to that student data.',
           rows: [],
           totalCount: 0,
         },
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Backend fires the PostgreSQL query against the Postgres database engine
-    let executedSql = geminiResult.sql || ''
+    let executedSql = parsedResult.sql || ''
     let rows: Partial<Student>[] = []
 
     try {
@@ -142,8 +142,8 @@ export async function POST(req: NextRequest) {
     } catch (sqlErr) {
       console.warn('Direct SQL query failed, generating safe fallback PostgreSQL query:', sqlErr)
       const safeFields =
-        geminiResult.fields && geminiResult.fields.length > 0
-          ? geminiResult.fields
+        parsedResult.fields && parsedResult.fields.length > 0
+          ? parsedResult.fields
           : ['roll_no', 'name', 'email', 'phone', 'panel']
       
       const panelClause = perms.panels.map((p) => `'${p}'`).join(', ')
@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
     const responseData: QueryApiResponse = {
       allowed: true,
       sql: executedSql,
-      interpretation: geminiResult.interpretation,
+      interpretation: parsedResult.interpretation,
       rows: rows,
       totalCount: rows.length,
     }

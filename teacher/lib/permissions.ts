@@ -3,7 +3,7 @@ import { PermissionsMap, TeacherPermissions } from '@/types'
 const KEY = process.env.NEXT_PUBLIC_PERMISSIONS_STORAGE_KEY || 'dq_teacher_permissions'
 
 const DEFAULT_PERMISSIONS: PermissionsMap = {
-  [process.env.NEXT_PUBLIC_TEACHER_EMAIL || 'pramod.mali@mitwpu.edu.in']: {
+  [process.env.NEXT_PUBLIC_TEACHER_EMAIL || 'teacher@mitwpu.edu.in']: {
     panels: ['D', 'J'],
     years: ['TY'],
     departments: ['CSE'],

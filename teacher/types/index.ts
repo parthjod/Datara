@@ -24,7 +24,7 @@ export interface PermissionsMap {
   [email: string]: TeacherPermissions
 }
 
-export interface GeminiQueryResult {
+export interface QueryResult {
   allowed: boolean
   sql?: string
   filters?: Partial<Record<keyof Student, string | string[]>>
@@ -32,6 +32,8 @@ export interface GeminiQueryResult {
   interpretation: string
   reason?: string
 }
+
+export type GeminiQueryResult = QueryResult
 
 export interface QueryApiResponse {
   allowed: boolean

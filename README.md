@@ -19,7 +19,7 @@ Datara/
 │   │   ├── globals.css          # Design tokens & typography
 │   │   └── layout.tsx           # Font loading (UnifrakturCook, Instrument Serif, Instrument Sans)
 │   ├── components/              # Topbar, HowItWorks, QueryBox, ResultsTable, ExportModal, Toast
-│   ├── lib/                     # students.ts (660 student generator), gemini.ts, export.ts, auth.ts, permissions.ts
+│   ├── lib/                     # students.ts (660 student generator), parser.ts, export.ts, auth.ts, permissions.ts
 │   └── types/                   # TypeScript interfaces
 │
 ├── admin/                       # Next.js 14 Admin Dashboard (Port 3001)
@@ -42,8 +42,8 @@ Datara/
 
 ### Teacher Portal
 - **URL**: `http://localhost:3000/login`
-- **Email**: `pramod.mali@mitwpu.edu.in`
-- **Password**: `pramodsir11`
+- **Email**: `teacher@mitwpu.edu.in`
+- **Password**: `teacher123`
 - **Initial Panels**: `D`, `J` (TY CSE)
 
 ### Admin Portal
@@ -69,9 +69,8 @@ cd ../admin && npm install
 
 ### 2. Configure Environment Variables
 - `teacher/.env.local`:
-  - `NEXT_PUBLIC_GEMINI_API_KEY`: Enter your Google Gemini API key. *(Note: A built-in fallback parser is included so queries test out of the box even before providing an API key)*
-  - `NEXT_PUBLIC_TEACHER_EMAIL`: `pramod.mali@mitwpu.edu.in`
-  - `NEXT_PUBLIC_TEACHER_PASSWORD`: `pramodsir11`
+  - `NEXT_PUBLIC_TEACHER_EMAIL`: `teacher@mitwpu.edu.in`
+  - `NEXT_PUBLIC_TEACHER_PASSWORD`: `teacher123`
   - `NEXT_PUBLIC_APP_NAME`: `Datara`
   - `NEXT_PUBLIC_INSTITUTE_DOMAIN`: `mitwpu.edu.in`
   - `NEXT_PUBLIC_PERMISSIONS_STORAGE_KEY`: `dq_teacher_permissions`

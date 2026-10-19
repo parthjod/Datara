@@ -30,10 +30,10 @@ const KEY = process.env.NEXT_PUBLIC_PERMISSIONS_STORAGE_KEY || 'dq_teacher_permi
 // Static teacher roster — names and metadata only, not permissions
 export const TEACHER_ROSTER: TeacherRecord[] = [
   {
-    email: 'pramod.mali@mitwpu.edu.in',
-    name: 'Prof. Pramod Mali',
+    email: process.env.NEXT_PUBLIC_TEACHER_EMAIL || 'teacher@mitwpu.edu.in',
+    name: 'Teacher',
     department: 'Computer Science & Engineering',
-    designation: 'Assistant Professor',
+    designation: 'Faculty',
   },
   {
     email: 'sneha.kulkarni@mitwpu.edu.in',
@@ -51,7 +51,7 @@ export const TEACHER_ROSTER: TeacherRecord[] = [
 
 // Default permissions seeded on first run
 const DEFAULT_PERMISSIONS: PermissionsMap = {
-  'pramod.mali@mitwpu.edu.in': { panels: ['D', 'J'], years: ['TY'], departments: ['CSE'], active: true },
+  [process.env.NEXT_PUBLIC_TEACHER_EMAIL || 'teacher@mitwpu.edu.in']: { panels: ['D', 'J'], years: ['TY'], departments: ['CSE'], active: true },
   'sneha.kulkarni@mitwpu.edu.in': { panels: ['A', 'B', 'C'], years: ['TY', 'SY'], departments: ['CSE'], active: true },
   'rahul.deshmukh@mitwpu.edu.in': { panels: ['E', 'F', 'G', 'H'], years: ['TY'], departments: ['CSE'], active: true },
 }
