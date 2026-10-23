@@ -157,7 +157,7 @@ export default function DashboardPage() {
     setToast({ message, visible: true })
     setTimeout(() => {
       setToast((prev) => ({ ...prev, visible: false }))
-    }, 3200)
+    }, 5000)
   }
 
   const handleFetch = async () => {

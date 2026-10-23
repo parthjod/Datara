@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Student, QueryApiResponse } from '@/types'
@@ -62,9 +62,14 @@ export default function UpdateMarksPage() {
     message: '',
     visible: false,
   })
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const showToast = (message: string) => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current)
     setToast({ message, visible: true })
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast((prev) => ({ ...prev, visible: false }))
+    }, 5000)
   }
 
   useEffect(() => {
@@ -224,10 +229,11 @@ export default function UpdateMarksPage() {
     showToast('Unsaved changes discarded.')
   }
 
-  // Log Marks to Real-Time Database
-  const handleLogMarks = async () => {
+  // Lock Marks and sync live to database
+  const handleLockMarks = async () => {
     if (modifiedRolls.size === 0) {
-      showToast('No modifications to log.')
+      setIsUnlocked(false)
+      showToast('🔒 Marks locked.')
       return
     }
 
@@ -251,14 +257,14 @@ export default function UpdateMarksPage() {
       const result = await res.json()
 
       if (!res.ok || !result.success) {
-        showToast(`⚠️ ${result.error || 'Failed to log marks.'}`)
+        showToast(`⚠️ ${result.error || 'Failed to update marks.'}`)
         setIsLogging(false)
         return
       }
 
-      showToast(`✓ ${result.message || 'Marks logged successfully in real time!'}`)
+      showToast(`✓ Marks locked and updated live in database!`)
 
-      // Reset edit mode and refetch fresh database records
+      // Reset edit mode and refetch fresh database records immediately
       setDraftMarks({})
       setModifiedRolls(new Set())
       setIsUnlocked(false)
@@ -266,7 +272,7 @@ export default function UpdateMarksPage() {
       // Re-fetch using last query to show immediate verified database reflection
       await fetchStudentMarks(lastExecutedQuery || query)
     } catch (err) {
-      console.error('Error logging marks:', err)
+      console.error('Error updating marks on lock:', err)
       showToast('⚠️ Error communicating with database.')
     } finally {
       setIsLogging(false)
@@ -569,27 +575,13 @@ export default function UpdateMarksPage() {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => setIsUnlocked(false)}
+                        onClick={handleLockMarks}
+                        disabled={isLogging}
                         className={styles.lockActiveBtn}
                       >
-                        <span>🔒</span> Lock Rows
+                        <span>🔒</span> {isLogging ? 'Locking & Updating...' : 'Lock Marks'}
                       </button>
                     )}
-
-                    {/* Log Marks Button */}
-                    <button
-                      type="button"
-                      onClick={handleLogMarks}
-                      disabled={isLogging || modifiedRolls.size === 0}
-                      className={styles.logBtn}
-                    >
-                      <span>💾</span>{' '}
-                      {isLogging
-                        ? 'Logging to DB...'
-                        : modifiedRolls.size > 0
-                        ? `Log Marks (${modifiedRolls.size} Modified)`
-                        : 'Log Marks'}
-                    </button>
                   </div>
                 </div>
 
