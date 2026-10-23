@@ -128,7 +128,6 @@ export function SendEmailModal({
     }
   }, [open, hasAttendance, hasAggregate])
 
-  if (!open) return null
 
   // Defaulter checks only evaluated if relevant columns were queried
   const isAttDef = (s: Partial<Student>): boolean =>
@@ -261,6 +260,8 @@ export function SendEmailModal({
       setSending(false)
     }
   }
+
+  if (!open) return null
 
   return (
     <div
