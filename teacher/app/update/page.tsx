@@ -43,10 +43,10 @@ export default function UpdateMarksPage() {
   const [isVerifying, setIsVerifying] = useState(false)
 
   // Query & Table State
-  const [query, setQuery] = useState('show CCA1 marks of panel D')
+  const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [students, setStudents] = useState<Partial<Student>[]>([])
-  const [activeColumns, setActiveColumns] = useState<string[]>(['cca1'])
+  const [activeColumns, setActiveColumns] = useState<string[]>([])
   const [showAllColumns, setShowAllColumns] = useState(false)
   const [queryInterpretation, setQueryInterpretation] = useState('')
   const [lastExecutedQuery, setLastExecutedQuery] = useState('')
@@ -111,8 +111,6 @@ export default function UpdateMarksPage() {
       setIsVerifying(false)
       setIsAuthenticated(true)
       showToast('✓ Faculty credentials verified. Marks editing unlocked.')
-      // Auto-fetch default query
-      fetchStudentMarks('show CCA1 marks of panel D')
     }, 400)
   }
 
@@ -445,70 +443,49 @@ export default function UpdateMarksPage() {
                 <button
                   type="button"
                   className={styles.chip}
-                  onClick={() => {
-                    setQuery('show CCA1 marks of panel D')
-                    fetchStudentMarks('show CCA1 marks of panel D')
-                  }}
+                  onClick={() => setQuery('show CCA1 marks of panel D')}
                 >
                   CCA1 of Panel D
                 </button>
                 <button
                   type="button"
                   className={styles.chip}
-                  onClick={() => {
-                    setQuery('show CCA2 marks of panel D')
-                    fetchStudentMarks('show CCA2 marks of panel D')
-                  }}
+                  onClick={() => setQuery('show CCA2 marks of panel D')}
                 >
                   CCA2 of Panel D
                 </button>
                 <button
                   type="button"
                   className={styles.chip}
-                  onClick={() => {
-                    setQuery('show midterm marks of panel D')
-                    fetchStudentMarks('show midterm marks of panel D')
-                  }}
+                  onClick={() => setQuery('show midterm marks of panel D')}
                 >
                   Midterm (/30) Panel D
                 </button>
                 <button
                   type="button"
                   className={styles.chip}
-                  onClick={() => {
-                    setQuery('show LCA1 marks of panel D')
-                    fetchStudentMarks('show LCA1 marks of panel D')
-                  }}
+                  onClick={() => setQuery('show LCA1 marks of panel D')}
                 >
                   LCA1 (/33) Panel D
                 </button>
                 <button
                   type="button"
                   className={styles.chip}
-                  onClick={() => {
-                    setQuery('show LCA2 marks of panel D')
-                    fetchStudentMarks('show LCA2 marks of panel D')
-                  }}
+                  onClick={() => setQuery('show LCA2 marks of panel D')}
                 >
                   LCA2 (/33) Panel D
                 </button>
                 <button
                   type="button"
                   className={styles.chip}
-                  onClick={() => {
-                    setQuery('show LCA3 marks of panel D')
-                    fetchStudentMarks('show LCA3 marks of panel D')
-                  }}
+                  onClick={() => setQuery('show LCA3 marks of panel D')}
                 >
                   LCA3 (/34) Panel D
                 </button>
                 <button
                   type="button"
                   className={styles.chip}
-                  onClick={() => {
-                    setQuery('show me a list of panel D students')
-                    fetchStudentMarks('show me a list of panel D students')
-                  }}
+                  onClick={() => setQuery('show me a list of panel D students')}
                 >
                   All Panel D Students
                 </button>
@@ -709,6 +686,16 @@ export default function UpdateMarksPage() {
                   <div>
                     Last Synced: {new Date().toLocaleTimeString()}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {loading && students.length === 0 && (
+              <div className={styles.resultsSection}>
+                <div className={styles.emptyState}>
+                  <div className={styles.spinner} />
+                  <h3>Querying Student Records...</h3>
+                  <p>Searching database cohorts matching your query.</p>
                 </div>
               </div>
             )}

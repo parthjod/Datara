@@ -6,12 +6,16 @@
 .content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1.5rem var(--pad-x) 3rem;
+  padding: 1.75rem var(--pad-x) 3.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
 }
 
 .section {
   opacity: 0;
   animation: rise 0.7s var(--ease) forwards;
+  width: 100%;
 }
 
 .section:nth-child(1) {
@@ -174,4 +178,27 @@
 
 .updateMarksCard:hover .updateMarksBtn {
   background: #1a7a4a;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 1.25rem var(--pad-x) 2.5rem;
+    gap: 1.5rem;
+  }
+
+  .updateMarksCard {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.35rem 1.25rem;
+    gap: 1.25rem;
+  }
+
+  .updateMarksLeft {
+    min-width: 0;
+  }
+
+  .updateMarksBtn {
+    width: 100%;
+    justify-content: center;
+  }
 }
