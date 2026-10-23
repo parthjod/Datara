@@ -34,7 +34,7 @@ export function generateStudents(): Student[] {
   const rand = seededRand(42)
   const students: Student[] = []
 
-  PANELS.forEach(panel => {
+  PANELS.forEach((panel) => {
     for (let i = 0; i < 60; i++) {
       const fi = Math.floor(rand() * FIRST_NAMES.length)
       const li = Math.floor(rand() * LAST_NAMES.length)
@@ -51,12 +51,91 @@ export function generateStudents(): Student[] {
       const houseNo = Math.floor(rand() * 999) + 1
       const address = `${houseNo}, ${area}, Pune, Maharashtra`
       const aadharRaw = String(Math.floor(rand() * 1e12)).padStart(12, '0')
-      const aadhar = `${aadharRaw.slice(0,4)} ${aadharRaw.slice(4,8)} ${aadharRaw.slice(8,12)}`
+      const aadhar = `${aadharRaw.slice(0, 4)} ${aadharRaw.slice(4, 8)} ${aadharRaw.slice(8, 12)}`
       const year = 2002 + Math.floor(rand() * 3)
       const month = String(Math.floor(rand() * 12) + 1).padStart(2, '0')
       const day = String(Math.floor(rand() * 28) + 1).padStart(2, '0')
       const dob = `${day}/${month}/${year}`
-      const gender: 'Male' | 'Female' = (students.length % 2 === 0) ? 'Male' : 'Female'
+      const gender: 'Male' | 'Female' = students.length % 2 === 0 ? 'Male' : 'Female'
+
+      // 1. Attendance percentage: ~20% below 80% (Defaulters)
+      const isAttDef = i % 5 === 0
+      const attendance = isAttDef
+        ? Number((58 + rand() * 21).toFixed(1)) // 58.0% - 79.0%
+        : Number((80 + rand() * 19.5).toFixed(1)) // 80.0% - 99.5%
+
+      // 2. CCA1 (max 15), CCA2 (max 15), Midterm (max 30) marks: total out of 60. Aggregate < 24 is defaulter.
+      const isMarksDef = i % 6 === 0
+      const cca1 = isMarksDef ? Math.floor(rand() * 4) + 2 : Math.floor(rand() * 6) + 10 // Defaulter: 2-5, Regular: 10-15
+      const cca2 = isMarksDef ? Math.floor(rand() * 4) + 2 : Math.floor(rand() * 6) + 10 // Defaulter: 2-5, Regular: 10-15
+      const midterm = isMarksDef ? Math.floor(rand() * 7) + 5 : Math.floor(rand() * 11) + 20 // Defaulter: 5-11, Regular: 20-30
+
+      // 3. LCA 1 (max 33), LCA 2 (max 33), LCA 3 (max 34) workflow tracking (Total 100)
+      let lca1: number | null = Math.floor(rand() * 14) + 20 // 20 - 33
+      let lca1_days_left = 10
+      let lca1_buffer_left = 4
+      let lca1_detention_pending = false
+      let detained = false
+
+      // Case 1: Missed LCA1, 10-day countdown active
+      if (i % 15 === 1) {
+        lca1 = null
+        lca1_days_left = (i % 8) + 2 // 2 to 9 days remaining
+        lca1_buffer_left = 4
+      }
+      // Case 2: 10 days expired, in 4-day buffer
+      else if (i % 25 === 2) {
+        lca1 = null
+        lca1_days_left = 0
+        lca1_buffer_left = (i % 3) + 1 // 1 to 3 days left in buffer
+      }
+      // Case 3: 4 buffer days completed, 0 marks assigned!
+      else if (i % 35 === 3) {
+        lca1 = 0
+        lca1_days_left = 0
+        lca1_buffer_left = 0
+        lca1_detention_pending = true
+      }
+      // Case 4: Day 5 detention reached!
+      else if (i % 55 === 4) {
+        lca1 = 0
+        lca1_days_left = 0
+        lca1_buffer_left = 0
+        detained = true
+      }
+
+      // LCA2 variations (max 33)
+      let lca2: number | null = Math.floor(rand() * 14) + 20 // 20 - 33
+      let lca2_days_left = 10
+      let lca2_buffer_left = 4
+      let lca2_detention_pending = false
+      if (i % 18 === 2) {
+        lca2 = null
+        lca2_days_left = 5
+      } else if (i % 32 === 5) {
+        lca2 = null
+        lca2_days_left = 0
+        lca2_buffer_left = 2
+      } else if (i % 48 === 7) {
+        lca2 = 0
+        lca2_days_left = 0
+        lca2_buffer_left = 0
+      }
+
+      // LCA3 variations (max 34)
+      let lca3: number | null = Math.floor(rand() * 15) + 20 // 20 - 34
+      let lca3_days_left = 10
+      let lca3_buffer_left = 4
+      let lca3_detention_pending = false
+      if (i % 22 === 3) {
+        lca3 = null
+        lca3_days_left = 8
+      } else if (i % 38 === 8) {
+        lca3 = null
+        lca3_days_left = 0
+        lca3_buffer_left = 3
+      }
+
 
       students.push({
         roll_no,
@@ -70,7 +149,24 @@ export function generateStudents(): Student[] {
         department: 'CSE',
         panel,
         year: 'TY',
-        program: 'BTech'
+        program: 'BTech',
+        attendance,
+        cca1,
+        cca2,
+        midterm,
+        lca1,
+        lca2,
+        lca3,
+        detained,
+        lca1_days_left,
+        lca1_buffer_left,
+        lca1_detention_pending,
+        lca2_days_left,
+        lca2_buffer_left,
+        lca2_detention_pending,
+        lca3_days_left,
+        lca3_buffer_left,
+        lca3_detention_pending,
       })
     }
   })
@@ -79,3 +175,4 @@ export function generateStudents(): Student[] {
 }
 
 export const STUDENTS: Student[] = generateStudents()
+

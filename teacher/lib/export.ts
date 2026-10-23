@@ -1,18 +1,42 @@
 import * as XLSX from 'xlsx'
 import { Student } from '@/types'
 
+function formatExportHeader(key: string): string {
+  if (key === 'cca1') return 'CCA 1'
+  if (key === 'cca2') return 'CCA 2'
+  if (key === 'midterm') return 'Midterm'
+  if (key === 'aggregate') return 'Aggregate (/60)'
+  if (key === 'attendance') return 'Attendance (%)'
+  if (key === 'lca1') return 'LCA 1'
+  if (key === 'lca2') return 'LCA 2'
+  if (key === 'lca3') return 'LCA 3'
+  if (key === 'detained') return 'Academic Status'
+  return key
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
+function formatExportValue(key: string, val: unknown): unknown {
+  if ((key === 'lca1' || key === 'lca2' || key === 'lca3')) {
+    if (val === null || val === undefined || val === '') return 'Pending'
+    if (Number(val) === 0) return '0 (Buffer Expired)'
+  }
+  if (key === 'detained') {
+    return val === true ? 'Detained' : 'Regular'
+  }
+  return val ?? ''
+}
+
 export function exportToExcel(data: Partial<Student>[], filename: string): void {
   if (!data.length) return
 
-  // Format headers nicely
+  // Format headers and values nicely
   const formattedData = data.map((row) => {
     const formattedRow: Record<string, unknown> = {}
     Object.keys(row).forEach((key) => {
-      const formattedKey = key
-        .split('_')
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-      formattedRow[formattedKey] = (row as Record<string, unknown>)[key] ?? ''
+      const formattedKey = formatExportHeader(key)
+      formattedRow[formattedKey] = formatExportValue(key, (row as Record<string, unknown>)[key])
     })
     return formattedRow
   })
@@ -35,6 +59,7 @@ export function exportToExcel(data: Partial<Student>[], filename: string): void 
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Students')
   XLSX.writeFile(workbook, `${filename}.xlsx`)
 }
+
 
 export function exportToCSV(data: Partial<Student>[], filename: string): void {
   if (!data.length) return

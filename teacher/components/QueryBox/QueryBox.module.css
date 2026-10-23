@@ -34,6 +34,42 @@
   box-shadow: 0 0 0 3px rgba(11, 11, 12, 0.07);
 }
 
+.chipRow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.chipLabel {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.suggestionChip {
+  font-size: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  padding: 0.25rem 0.65rem;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.suggestionChip:hover:not(:disabled) {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+.suggestionChip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .row {
   display: flex;
   align-items: center;
@@ -42,6 +78,7 @@
   gap: 1rem;
   flex-wrap: wrap;
 }
+
 
 .hint {
   font-size: 0.8rem;

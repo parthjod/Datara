@@ -30,6 +30,25 @@
   gap: 0.875rem;
 }
 
+.updateMarksLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(26, 122, 74, 0.08);
+  border: 1.5px solid rgba(26, 122, 74, 0.25);
+  color: #1a7a4a;
+  border-radius: 6px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.updateMarksLink:hover {
+  background: rgba(26, 122, 74, 0.15);
+  border-color: #1a7a4a;
+}
+
 .teacherName {
   font-size: 0.875rem;
   color: var(--muted);

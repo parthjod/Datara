@@ -27,7 +27,7 @@ export function QueryBox({ value, onChange, onFetch, loading, disabled }: QueryB
         placeholder={
           disabled
             ? 'Account disabled by administrator. Queries cannot be submitted.'
-            : 'e.g. TY CSE students in panel D and J, show their phone number and aadhar...'
+            : 'e.g. Show me a list of defaulter students, Defaulter by attendance, Defaulter by marks, or TY CSE students in panel D...'
         }
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -35,6 +35,45 @@ export function QueryBox({ value, onChange, onFetch, loading, disabled }: QueryB
         disabled={loading || disabled}
         aria-label="Student data query prompt"
       />
+
+      {!disabled && (
+        <div className={styles.chipRow}>
+          <span className={styles.chipLabel}>Quick Defaulter Queries:</span>
+          <button
+            type="button"
+            className={styles.suggestionChip}
+            onClick={() => onChange('Show me a list of defaulter students')}
+            disabled={loading}
+          >
+            📋 All Defaulters
+          </button>
+          <button
+            type="button"
+            className={styles.suggestionChip}
+            onClick={() => onChange('Defaulter by attendance')}
+            disabled={loading}
+          >
+            ⚠️ Attendance &lt; 80%
+          </button>
+          <button
+            type="button"
+            className={styles.suggestionChip}
+            onClick={() => onChange('Defaulter by marks')}
+            disabled={loading}
+          >
+            📉 Marks Aggregate &lt; 24/60
+          </button>
+          <button
+            type="button"
+            className={styles.suggestionChip}
+            onClick={() => onChange('Show students who missed LCA assessment')}
+            disabled={loading}
+          >
+            ⏳ Missed LCA Assessments
+          </button>
+        </div>
+      )}
+
       <div className={styles.row}>
         <div className={styles.hint}>
           {disabled ? (
@@ -47,6 +86,7 @@ export function QueryBox({ value, onChange, onFetch, loading, disabled }: QueryB
             </>
           )}
         </div>
+
         <button
           type="button"
           onClick={onFetch}

@@ -10,6 +10,8 @@ import { HowItWorks } from '@/components/HowItWorks/HowItWorks'
 import { QueryBox } from '@/components/QueryBox/QueryBox'
 import { ResultsTable } from '@/components/ResultsTable/ResultsTable'
 import { ExportModal } from '@/components/ExportModal/ExportModal'
+import { SendEmailModal } from '@/components/SendEmailModal/SendEmailModal'
+import { AutomatedDefaulterPanel } from '@/components/AutomatedDefaulterPanel/AutomatedDefaulterPanel'
 import { Toast } from '@/components/Toast/Toast'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import styles from './dashboard.module.css'
@@ -33,12 +35,14 @@ export default function DashboardPage() {
   const [sqlQuery, setSqlQuery] = useState('')
   const [deniedReason, setDeniedReason] = useState('')
   const [showExportModal, setShowExportModal] = useState(false)
+  const [showSendEmailModal, setShowSendEmailModal] = useState(false)
   const [loadingText, setLoadingText] = useState('Processing query...')
   const [lastQuery, setLastQuery] = useState('')
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({
     message: '',
     visible: false,
   })
+
 
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const lastActiveRef = useRef<boolean>(true)
@@ -225,6 +229,54 @@ export default function DashboardPage() {
           <HowItWorks />
         </section>
 
+        {/* Add or Update Marks Section */}
+        <section className={styles.section} style={{ transform: 'translateY(16px)' }}>
+          <div
+            className={styles.updateMarksCard}
+            onClick={() => router.push('/update')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                router.push('/update')
+              }
+            }}
+            aria-label="Navigate to Add or Update Marks Portal"
+          >
+            <div className={styles.updateMarksLeft}>
+              <div className={styles.updateMarksHeader}>
+                <span className={styles.updateMarksIcon}>✎</span>
+                <h2 className={styles.updateMarksTitle}>Add or Update Marks</h2>
+                <span className={styles.updateMarksNewBadge}>Live Database Sync</span>
+              </div>
+              <p className={styles.updateMarksDesc}>
+                Open the dedicated marks management portal. Query student cohorts (e.g. <em>"show CCA1 marks of panel D"</em> or <em>"show list of panel D students"</em>), unlock rows, edit assessments, and log updates dynamically in real-time.
+              </p>
+              <div className={styles.marksBadgeList}>
+                <span className={styles.marksBadgeItem}>CCA 1 (/15)</span>
+                <span className={styles.marksBadgeItem}>CCA 2 (/15)</span>
+                <span className={styles.marksBadgeItem}>Midterm (/30)</span>
+                <span className={styles.marksBadgeItem}>LCA 1 (/33)</span>
+                <span className={styles.marksBadgeItem}>LCA 2 (/33)</span>
+                <span className={styles.marksBadgeItem}>LCA 3 (/34)</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className={styles.updateMarksBtn}
+              onClick={(e) => {
+                e.stopPropagation()
+                router.push('/update')
+              }}
+            >
+              <span>Go to /update Portal</span>
+              <span>→</span>
+            </button>
+          </div>
+        </section>
+
         <section className={styles.section} style={{ transform: 'translateY(16px)' }}>
           {!isLiveActive && (
             <div className={styles.restrictedBanner} role="alert">
@@ -252,6 +304,17 @@ export default function DashboardPage() {
             deniedReason={deniedReason}
             loadingText={loadingText}
             onExport={() => setShowExportModal(true)}
+            onSendEmail={() => setShowSendEmailModal(true)}
+          />
+        </section>
+
+        <section className={styles.section} style={{ transform: 'translateY(16px)' }}>
+          <AutomatedDefaulterPanel
+            onRunComplete={(summary) =>
+              showToast(
+                `✓ Daily cycle executed: ${summary.totalEmails} automated notifications dispatched`
+              )
+            }
           />
         </section>
       </main>
@@ -265,9 +328,21 @@ export default function DashboardPage() {
           setShowExportModal(false)
           showToast('Dataset export processed')
         }}
+        onSendEmail={() => setShowSendEmailModal(true)}
+      />
+
+      <SendEmailModal
+        open={showSendEmailModal}
+        data={allResults}
+        queryText={lastQuery}
+        onClose={() => setShowSendEmailModal(false)}
+        onSuccess={(count) => {
+          showToast(`✓ Successfully dispatched ${count} customized defaulter notification emails!`)
+        }}
       />
 
       <Toast message={toast.message} visible={toast.visible} />
     </div>
   )
+
 }

@@ -62,9 +62,18 @@ export function HowItWorks() {
                 Directly retrieve matched records on-screen and immediately export complete rosters to Excel (.xlsx) or formatted PDF.
               </div>
             </div>
+
+            <div className={styles.step}>
+              <div className={styles.stepNum}>4</div>
+              <div className={styles.stepTitle}>Defaulters & Email Notices</div>
+              <div className={styles.stepBody}>
+                Identify defaulters (attendance &lt; 80% or aggregate &lt; 24/60), dispatch customized warning emails, and simulate daily LCA countdowns.
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
     </div>
   )
 }

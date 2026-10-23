@@ -11,6 +11,7 @@ interface ExportModalProps {
   data: Partial<Student>[]
   queryText: string
   onClose: () => void
+  onSendEmail?: () => void
 }
 
 export function ExportModal({
@@ -19,6 +20,7 @@ export function ExportModal({
   data,
   queryText,
   onClose,
+  onSendEmail,
 }: ExportModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
 
@@ -69,7 +71,7 @@ export function ExportModal({
       >
         <div className={styles.header}>
           <h2 id="export-modal-title" className={styles.title}>
-            Export Dataset
+            Export Dataset & Actions
           </h2>
           <button
             type="button"
@@ -82,7 +84,7 @@ export function ExportModal({
         </div>
 
         <p className={styles.subtitle}>
-          Exporting {totalCount} matching student records
+          {totalCount} matching student records available
         </p>
 
         <div className={styles.options}>
@@ -113,6 +115,25 @@ export function ExportModal({
               </div>
             </div>
           </button>
+
+          {onSendEmail && (
+            <button
+              type="button"
+              className={styles.optionBtn}
+              onClick={() => {
+                onClose()
+                onSendEmail()
+              }}
+            >
+              <span className={styles.optionIcon}>✉️</span>
+              <div>
+                <div className={styles.optionTitle}>Send Defaulter Notice (Email)</div>
+                <div className={styles.optionSub}>
+                  Dispatch customized official notification emails to defaulter students
+                </div>
+              </div>
+            </button>
+          )}
         </div>
       </div>
     </div>

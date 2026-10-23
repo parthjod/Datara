@@ -1,4 +1,4 @@
-import React from 'react'
+import Link from 'next/link'
 import styles from './Topbar.module.css'
 
 interface TopbarProps {
@@ -14,6 +14,9 @@ export function Topbar({ teacherName, onLogout }: TopbarProps) {
       <div className={styles.inner}>
         <div className={styles.logo}>{appName}</div>
         <div className={styles.right}>
+          <Link href="/update" className={styles.updateMarksLink}>
+            <span>✎</span> Add / Update Marks
+          </Link>
           <span className={styles.teacherName}>{teacherName}</span>
           <button
             type="button"

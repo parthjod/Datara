@@ -132,6 +132,32 @@
   font-size: 0.8rem;
 }
 
+.actionsGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.emailBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 1.15rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: transform 0.25s var(--ease), background 0.2s ease, border-color 0.2s ease;
+}
+
+.emailBtn:hover {
+  background: var(--surface);
+  border-color: rgba(11, 11, 12, 0.25);
+  transform: translateY(-1px);
+}
+
 .exportBtn {
   background: var(--ink);
   color: #fff;
@@ -146,6 +172,42 @@
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
+
+.defaulterPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid rgba(192, 57, 43, 0.2);
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.successPill {
+  display: inline-flex;
+  align-items: center;
+  background: var(--success-bg);
+  color: var(--success);
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.warningPill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(220, 140, 20, 0.1);
+  color: #c46200;
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
 
 
 

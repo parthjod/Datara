@@ -20,11 +20,15 @@ import { Topbar } from '@/components/Topbar/Topbar'
 import { TeacherSidebar } from '@/components/TeacherSidebar/TeacherSidebar'
 import { TeacherDetail } from '@/components/TeacherDetail/TeacherDetail'
 import { AddTeacherModal } from '@/components/AddTeacherModal/AddTeacherModal'
+import { DefaultersMonitor } from '@/components/DefaultersMonitor/DefaultersMonitor'
 import { Toast } from '@/components/Toast/Toast'
 import styles from './admin.module.css'
 
 export default function AdminPage() {
   const router = useRouter()
+
+  // Navigation view mode: 'faculty' or 'defaulters'
+  const [viewMode, setViewMode] = useState<'faculty' | 'defaulters'>('faculty')
 
   // Teachers — roster + live permissions merged
   const [teachers, setTeachers] = useState<TeacherWithPermissions[]>([])
@@ -43,6 +47,7 @@ export default function AdminPage() {
     visible: false,
   })
   const [saveStatus, setSaveStatus] = useState('')
+
 
   function showToast(message: string, duration = 2800) {
     setToast({ message, visible: true })
@@ -186,37 +191,65 @@ export default function AdminPage() {
     <div className={styles.page}>
       <Topbar onLogout={handleLogout} />
 
-      <main className={styles.body}>
-        <TeacherSidebar
-          teachers={teachers}
-          selectedEmail={selectedEmail}
-          onSelect={(email) => selectTeacher(email)}
-          onAddTeacher={() => setShowAddModal(true)}
-        />
-
-        <div className={styles.mainContent}>
-          {selectedTeacher ? (
-            <TeacherDetail
-              teacher={selectedTeacher}
-              pendingPanels={pendingPanels}
-              pendingYears={pendingYears}
-              pendingDepts={pendingDepts}
-              pendingActive={pendingActive}
-              onPanelsChange={setPendingPanels}
-              onYearsChange={setPendingYears}
-              onDeptsChange={setPendingDepts}
-              onActiveChange={handleActiveToggle}
-              onSave={handleSave}
-              onDiscard={handleDiscard}
-              saveStatus={saveStatus}
-            />
-          ) : (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
-              No faculty selected
-            </div>
-          )}
+      {/* Top Navigation Tabs */}
+      <div className={styles.navBar}>
+        <div className={styles.navContainer}>
+          <button
+            type="button"
+            className={`${styles.navTab} ${viewMode === 'faculty' ? styles.navTabActive : ''}`}
+            onClick={() => setViewMode('faculty')}
+          >
+            <span>👥</span>
+            <span>Faculty Permissions</span>
+          </button>
+          <button
+            type="button"
+            className={`${styles.navTab} ${viewMode === 'defaulters' ? styles.navTabActive : ''}`}
+            onClick={() => setViewMode('defaulters')}
+          >
+            <span>📊</span>
+            <span>Defaulters &amp; Academic Policy Console</span>
+          </button>
         </div>
-      </main>
+      </div>
+
+      {viewMode === 'faculty' ? (
+        <main className={styles.body}>
+          <TeacherSidebar
+            teachers={teachers}
+            selectedEmail={selectedEmail}
+            onSelect={(email) => selectTeacher(email)}
+            onAddTeacher={() => setShowAddModal(true)}
+          />
+
+          <div className={styles.mainContent}>
+            {selectedTeacher ? (
+              <TeacherDetail
+                teacher={selectedTeacher}
+                pendingPanels={pendingPanels}
+                pendingYears={pendingYears}
+                pendingDepts={pendingDepts}
+                pendingActive={pendingActive}
+                onPanelsChange={setPendingPanels}
+                onYearsChange={setPendingYears}
+                onDeptsChange={setPendingDepts}
+                onActiveChange={handleActiveToggle}
+                onSave={handleSave}
+                onDiscard={handleDiscard}
+                saveStatus={saveStatus}
+              />
+            ) : (
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
+                No faculty selected
+              </div>
+            )}
+          </div>
+        </main>
+      ) : (
+        <main className={styles.fullWidthBody}>
+          <DefaultersMonitor onNotify={showToast} />
+        </main>
+      )}
 
       <AddTeacherModal
         open={showAddModal}
@@ -228,4 +261,5 @@ export default function AdminPage() {
       <Toast message={toast.message} visible={toast.visible} />
     </div>
   )
+
 }

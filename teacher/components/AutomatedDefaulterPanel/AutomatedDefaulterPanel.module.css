@@ -1,0 +1,235 @@
+.card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: box-shadow 0.3s var(--ease);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.header {
+  padding: 1.15rem 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.headerTitle {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.dayBadge {
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--sky);
+  color: var(--ink);
+  padding: 0.2rem 0.65rem;
+  border-radius: 99px;
+}
+
+.toggleBtn {
+  font-size: 0.85rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.chevron {
+  display: inline-block;
+  transition: transform 0.25s var(--ease);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.body {
+  padding: 1.5rem 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: #fafcfe;
+}
+
+.rulesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+.ruleBox {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ruleBoxTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ruleBoxDesc {
+  font-size: 0.82rem;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.actionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.actionStatus {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.actionStatus strong {
+  color: var(--ink);
+}
+
+.btnGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.runBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--ink);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.55rem 1.2rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: transform 0.2s var(--ease);
+}
+
+.runBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.runBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.resetBtn {
+  font-size: 0.82rem;
+  color: var(--muted);
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.resetBtn:hover:not(:disabled) {
+  color: var(--danger);
+  border-color: rgba(192, 57, 43, 0.3);
+  background: var(--danger-bg);
+}
+
+.feedTitle {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 1.1rem;
+  color: var(--ink);
+  margin-top: 0.25rem;
+}
+
+.feedList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.feedItem {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.feedMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.feedSubject {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.feedRecipient {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.feedBadge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.badgeAttendance {
+  background: rgba(192, 57, 43, 0.1);
+  color: var(--danger);
+}
+
+.badgeMarks {
+  background: rgba(220, 140, 20, 0.12);
+  color: #c46200;
+}
+
+.badgeLca {
+  background: rgba(41, 128, 185, 0.1);
+  color: #2980b9;
+}
+
+.badgeDetained {
+  background: var(--danger);
+  color: #fff;
+}

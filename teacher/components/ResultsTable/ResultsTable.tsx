@@ -9,6 +9,96 @@ interface ResultsTableProps {
   deniedReason: string
   loadingText: string
   onExport: () => void
+  onSendEmail?: () => void
+}
+
+function formatColumnHeader(col: string): string {
+  if (col === 'cca1') return 'CCA 1 (/15)'
+  if (col === 'cca2') return 'CCA 2 (/15)'
+  if (col === 'midterm') return 'Midterm (/30)'
+  if (col === 'aggregate') return 'Aggregate (/60)'
+  if (col === 'attendance') return 'Attendance'
+  if (col === 'lca1') return 'LCA 1 (/33)'
+  if (col === 'lca2') return 'LCA 2 (/33)'
+  if (col === 'lca3') return 'LCA 3 (/34)'
+  if (col === 'detained') return 'Academic Status'
+  return col.replace(/_/g, ' ')
+}
+
+function formatCellValue(col: string, val: unknown): React.ReactNode {
+  if (col === 'attendance' && val !== undefined && val !== null && val !== '') {
+    const num = Number(val)
+    if (num < 80) {
+      return (
+        <span className={styles.defaulterPill}>
+          <span>⚠️</span> {num}% (Defaulter)
+        </span>
+      )
+    }
+    return <span className={styles.successPill}>{num}%</span>
+  }
+
+  if (col === 'cca1' && val !== undefined && val !== null && val !== '') {
+    return <span>{String(val)} / 15</span>
+  }
+  if (col === 'cca2' && val !== undefined && val !== null && val !== '') {
+    return <span>{String(val)} / 15</span>
+  }
+  if (col === 'midterm' && val !== undefined && val !== null && val !== '') {
+    return <span>{String(val)} / 30</span>
+  }
+
+  if (col === 'aggregate' && val !== undefined && val !== null && val !== '') {
+    const num = Number(val)
+    if (num < 24) {
+      return (
+        <span className={styles.defaulterPill}>
+          <span>⚠️</span> {num}/60 (Defaulter)
+        </span>
+      )
+    }
+    return <span className={styles.successPill}>{num}/60</span>
+  }
+
+  if (col === 'lca1') {
+    if (val === null || val === undefined || val === '') {
+      return <span className={styles.warningPill}>Pending (Window Active)</span>
+    }
+    if (Number(val) === 0) {
+      return <span className={styles.defaulterPill}>0 (Buffer Expired)</span>
+    }
+    return <span>{String(val)} / 33</span>
+  }
+
+  if (col === 'lca2') {
+    if (val === null || val === undefined || val === '') {
+      return <span className={styles.warningPill}>Pending (Window Active)</span>
+    }
+    if (Number(val) === 0) {
+      return <span className={styles.defaulterPill}>0 (Buffer Expired)</span>
+    }
+    return <span>{String(val)} / 33</span>
+  }
+
+  if (col === 'lca3') {
+    if (val === null || val === undefined || val === '') {
+      return <span className={styles.warningPill}>Pending (Window Active)</span>
+    }
+    if (Number(val) === 0) {
+      return <span className={styles.defaulterPill}>0 (Buffer Expired)</span>
+    }
+    return <span>{String(val)} / 34</span>
+  }
+
+
+  if (col === 'detained') {
+    if (val === true) {
+      return <span className={styles.defaulterPill}>⚠️ Detained</span>
+    }
+    return <span className={styles.successPill}>Regular</span>
+  }
+
+  return String(val ?? '')
 }
 
 export function ResultsTable({
@@ -18,6 +108,7 @@ export function ResultsTable({
   deniedReason,
   loadingText,
   onExport,
+  onSendEmail,
 }: ResultsTableProps) {
   if (state === 'empty') {
     return (
@@ -60,7 +151,7 @@ export function ResultsTable({
     )
   }
 
-  const columns = rows.length > 0 ? (Object.keys(rows[0]) as (keyof Student)[]) : []
+  const columns = rows.length > 0 ? (Object.keys(rows[0]) as (keyof Student | string)[]) : []
 
   return (
     <div className={styles.resultsCard}>
@@ -71,14 +162,27 @@ export function ResultsTable({
             {allCount} {allCount === 1 ? 'student' : 'students'}
           </span>
         </div>
-        <button
-          type="button"
-          onClick={onExport}
-          className={styles.exportBtn}
-          aria-label="Export all results"
-        >
-          Export Data
-        </button>
+        <div className={styles.actionsGroup}>
+          {onSendEmail && (
+            <button
+              type="button"
+              onClick={onSendEmail}
+              className={styles.emailBtn}
+              aria-label="Send email notice to defaulter students"
+            >
+              <span>✉️</span>
+              <span>Send Email</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onExport}
+            className={styles.exportBtn}
+            aria-label="Export all results"
+          >
+            Export Data
+          </button>
+        </div>
       </div>
 
       <div className={styles.tableWrap}>
@@ -87,8 +191,8 @@ export function ResultsTable({
           <thead>
             <tr>
               {columns.map((col) => (
-                <th key={col} scope="col">
-                  {col.replace('_', ' ')}
+                <th key={String(col)} scope="col">
+                  {formatColumnHeader(String(col))}
                 </th>
               ))}
             </tr>
@@ -100,7 +204,9 @@ export function ResultsTable({
                 style={{ '--row-i': index } as React.CSSProperties}
               >
                 {columns.map((col) => (
-                  <td key={col}>{String(row[col] ?? '')}</td>
+                  <td key={String(col)}>
+                    {formatCellValue(String(col), (row as Record<string, unknown>)[String(col)])}
+                  </td>
                 ))}
               </tr>
             ))}
@@ -116,3 +222,4 @@ export function ResultsTable({
     </div>
   )
 }
+

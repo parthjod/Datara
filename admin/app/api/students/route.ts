@@ -1,0 +1,83 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getStoredStudents } from '@/lib/students_store'
+import { Student } from '@/types'
+
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS_HEADERS })
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const panel = searchParams.get('panel') || 'ALL'
+    const category = searchParams.get('category') || 'all'
+    const search = (searchParams.get('search') || '').toLowerCase().trim()
+
+    const allStudents = getStoredStudents()
+
+    // Calculate overall metrics
+    const attendanceDefaultersCount = allStudents.filter((s) => s.attendance < 80).length
+    const marksDefaultersCount = allStudents.filter(
+      (s) => s.cca1 + s.cca2 + s.midterm < 24
+    ).length
+    const lcaDefaultersCount = allStudents.filter(
+      (s) => s.lca1 === null || s.lca2 === null || s.lca3 === null || s.lca1 === 0 || s.lca2 === 0 || s.lca3 === 0
+    ).length
+    const detainedCount = allStudents.filter((s) => s.detained).length
+
+    // Filter
+    let filtered = allStudents
+
+    if (panel !== 'ALL') {
+      filtered = filtered.filter((s) => s.panel === panel)
+    }
+
+    if (category === 'attendance') {
+      filtered = filtered.filter((s) => s.attendance < 80)
+    } else if (category === 'marks') {
+      filtered = filtered.filter((s) => s.cca1 + s.cca2 + s.midterm < 24)
+    } else if (category === 'lca') {
+      filtered = filtered.filter(
+        (s) => s.lca1 === null || s.lca2 === null || s.lca3 === null || s.lca1 === 0 || s.lca2 === 0 || s.lca3 === 0
+      )
+    } else if (category === 'detained') {
+      filtered = filtered.filter((s) => s.detained)
+    }
+
+    if (search) {
+      filtered = filtered.filter(
+        (s) =>
+          s.name.toLowerCase().includes(search) ||
+          s.roll_no.toLowerCase().includes(search) ||
+          s.email.toLowerCase().includes(search)
+      )
+    }
+
+    return NextResponse.json(
+      {
+        metrics: {
+          total: allStudents.length,
+          attendanceDefaulters: attendanceDefaultersCount,
+          marksDefaulters: marksDefaultersCount,
+          lcaDefaulters: lcaDefaultersCount,
+          detained: detainedCount,
+        },
+        students: filtered,
+        count: filtered.length,
+      },
+      { headers: CORS_HEADERS }
+    )
+  } catch (err) {
+    console.error('Error in /api/students:', err)
+    return NextResponse.json(
+      { error: 'Failed to fetch student database records' },
+      { status: 500, headers: CORS_HEADERS }
+    )
+  }
+}
