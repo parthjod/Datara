@@ -119,6 +119,15 @@ export function parseOfflineQuery(
     fields.push('attendance')
     customFieldsSelected = true
   }
+  const hasSpecificAssessment =
+    q.includes('cca1') || q.includes('cca 1') ||
+    q.includes('cca2') || q.includes('cca 2') ||
+    q.includes('midterm') || q.includes('mid term') || q.includes('mid-term') ||
+    q.includes('lca1') || q.includes('lca 1') ||
+    q.includes('lca2') || q.includes('lca 2') ||
+    q.includes('lca3') || q.includes('lca 3') ||
+    q.includes('aggregate') || q.includes('total marks') || q.includes('internal aggregate')
+
   if (q.includes('cca1') || q.includes('cca 1')) {
     fields.push('cca1')
     customFieldsSelected = true
@@ -135,10 +144,13 @@ export function parseOfflineQuery(
     fields.push('(cca1 + cca2 + midterm) AS aggregate')
     customFieldsSelected = true
   }
-  if (q.includes('all marks') || q.includes('update') || q.includes('evaluation') || q.includes('assessment')) {
+  if (q.includes('all marks') || q.includes('all assessments')) {
     fields.push('cca1', 'cca2', 'midterm', '(cca1 + cca2 + midterm) AS aggregate', 'lca1', 'lca2', 'lca3')
     customFieldsSelected = true
-  } else if (q.includes('marks') || q.includes('scores') || q.includes('academics')) {
+  } else if (!hasSpecificAssessment && (q.includes('evaluation') || q.includes('assessment'))) {
+    fields.push('cca1', 'cca2', 'midterm', '(cca1 + cca2 + midterm) AS aggregate', 'lca1', 'lca2', 'lca3')
+    customFieldsSelected = true
+  } else if (!hasSpecificAssessment && (q.includes('marks') || q.includes('scores') || q.includes('academics'))) {
     fields.push('cca1', 'cca2', 'midterm', '(cca1 + cca2 + midterm) AS aggregate')
     customFieldsSelected = true
   }
