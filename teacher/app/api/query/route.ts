@@ -163,7 +163,16 @@ export async function POST(req: NextRequest) {
           const supaMap = new Map((supaRows as any[]).map((s) => [s.roll_no, s]))
           rows = rows.map((r) => {
             const override = supaMap.get(r.roll_no)
-            return override ? { ...r, ...override } : r
+            if (!override) return r
+            // STRICTLY preserve only the queried keys in r
+            const updated: Record<string, unknown> = {}
+            for (const key of Object.keys(r)) {
+              updated[key] =
+                (override as any)[key] !== undefined && (override as any)[key] !== null
+                  ? (override as any)[key]
+                  : (r as any)[key]
+            }
+            return updated as Partial<Student>
           })
         }
       } catch {}
@@ -176,6 +185,14 @@ export async function POST(req: NextRequest) {
       interpretation: parsedResult.interpretation,
       rows: rows,
       totalCount: rows.length,
+      fields:
+        parsedResult.fields && parsedResult.fields.length > 0
+          ? parsedResult.fields.map((f: string) =>
+              f.includes(' AS ') ? f.split(' AS ')[1].trim() : f.trim()
+            )
+          : rows[0]
+          ? Object.keys(rows[0])
+          : ['roll_no', 'name', 'panel'],
     }
 
     return NextResponse.json(responseData, { headers: CORS_HEADERS })

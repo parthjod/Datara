@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Student, SentEmail, WorkflowState, ALL_PANELS } from '@/types'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import styles from './DefaultersMonitor.module.css'
@@ -39,14 +39,20 @@ export function DefaultersMonitor({ onNotify }: DefaultersMonitorProps) {
 
   const [selectedLog, setSelectedLog] = useState<SentEmail | null>(null)
 
+  const filtersRef = useRef({ selectedPanel, selectedCategory, search })
+  filtersRef.current = { selectedPanel, selectedCategory, search }
+
   // Fetch students
-  const loadStudents = async () => {
-    setLoading(true)
+  const loadStudents = async (silent = false) => {
+    if (!silent) {
+      setLoading(true)
+    }
     try {
+      const { selectedPanel: p, selectedCategory: c, search: s } = filtersRef.current
       const params = new URLSearchParams()
-      if (selectedPanel !== 'ALL') params.set('panel', selectedPanel)
-      if (selectedCategory !== 'all') params.set('category', selectedCategory)
-      if (search.trim()) params.set('search', search.trim())
+      if (p !== 'ALL') params.set('panel', p)
+      if (c !== 'all') params.set('category', c)
+      if (s.trim()) params.set('search', s.trim())
 
       const res = await fetch(`/api/students?${params.toString()}`)
       if (res.ok) {
@@ -93,7 +99,8 @@ export function DefaultersMonitor({ onNotify }: DefaultersMonitorProps) {
   }
 
   useEffect(() => {
-    loadStudents()
+    // Silent update if records are already displayed to prevent table flickering
+    loadStudents(students.length > 0)
   }, [selectedPanel, selectedCategory, search])
 
   // Real-time dynamic live updates without manual page refresh
@@ -111,7 +118,7 @@ export function DefaultersMonitor({ onNotify }: DefaultersMonitorProps) {
               return match ? { ...s, ...match } : s
             })
           )
-          loadStudents()
+          loadStudents(true)
         }
       }
     }
@@ -119,14 +126,14 @@ export function DefaultersMonitor({ onNotify }: DefaultersMonitorProps) {
     // 2. Storage event listener (fires across tabs on localStorage change)
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'dq_student_marks_updates') {
-        loadStudents()
+        loadStudents(true)
       }
     }
     window.addEventListener('storage', handleStorage)
 
-    // 3. Tab focus listener (instantly sync when switching back to Admin portal tab)
+    // 3. Tab focus listener (instantly sync silently when switching back to Admin portal tab)
     const handleFocus = () => {
-      loadStudents()
+      loadStudents(true)
     }
     window.addEventListener('focus', handleFocus)
 
@@ -145,7 +152,7 @@ export function DefaultersMonitor({ onNotify }: DefaultersMonitorProps) {
                 setStudents((prev) =>
                   prev.map((s) => (s.roll_no === updated.roll_no ? { ...s, ...updated } : s))
                 )
-                loadStudents()
+                loadStudents(true)
               }
             }
           )
@@ -153,19 +160,13 @@ export function DefaultersMonitor({ onNotify }: DefaultersMonitorProps) {
       } catch {}
     }
 
-    // 5. Periodic background polling (every 4s) to ensure data is always fresh
-    const pollInterval = setInterval(() => {
-      loadStudents()
-    }, 4000)
-
     return () => {
       if (bc) bc.close()
       window.removeEventListener('storage', handleStorage)
       window.removeEventListener('focus', handleFocus)
       if (supaChannel && supabase) supabase.removeChannel(supaChannel)
-      clearInterval(pollInterval)
     }
-  }, [selectedPanel, selectedCategory, search])
+  }, [])
 
   useEffect(() => {
     loadLogsAndState()

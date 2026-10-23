@@ -28,13 +28,37 @@ function formatExportValue(key: string, val: unknown): unknown {
   return val ?? ''
 }
 
-export function exportToExcel(data: Partial<Student>[], filename: string): void {
+const INTERNAL_FIELDS = new Set([
+  'lca1_days_left',
+  'lca1_buffer_left',
+  'lca1_detention_pending',
+  'lca2_days_left',
+  'lca2_buffer_left',
+  'lca2_detention_pending',
+  'lca3_days_left',
+  'lca3_buffer_left',
+  'lca3_detention_pending',
+  'updated_at',
+  'id',
+  'created_at',
+])
+
+export function exportToExcel(
+  data: Partial<Student>[],
+  filename: string,
+  columns?: string[]
+): void {
   if (!data.length) return
 
-  // Format headers and values nicely
+  const targetColumns =
+    columns && columns.length > 0
+      ? columns.filter((k) => !INTERNAL_FIELDS.has(k))
+      : Object.keys(data[0] || {}).filter((k) => !INTERNAL_FIELDS.has(k))
+
+  // Format headers and values nicely for ONLY the queried columns
   const formattedData = data.map((row) => {
     const formattedRow: Record<string, unknown> = {}
-    Object.keys(row).forEach((key) => {
+    targetColumns.forEach((key) => {
       const formattedKey = formatExportHeader(key)
       formattedRow[formattedKey] = formatExportValue(key, (row as Record<string, unknown>)[key])
     })
@@ -60,14 +84,23 @@ export function exportToExcel(data: Partial<Student>[], filename: string): void 
   XLSX.writeFile(workbook, `${filename}.xlsx`)
 }
 
-
-export function exportToCSV(data: Partial<Student>[], filename: string): void {
+export function exportToCSV(
+  data: Partial<Student>[],
+  filename: string,
+  columns?: string[]
+): void {
   if (!data.length) return
-  const headers = Object.keys(data[0]) as (keyof Student)[]
-  const rows = data.map(row =>
-    headers.map(h => `"${String(row[h] ?? '').replace(/"/g, '""')}"`).join(',')
+  const headers =
+    columns && columns.length > 0
+      ? columns.filter((k) => !INTERNAL_FIELDS.has(k))
+      : Object.keys(data[0] || {}).filter((k) => !INTERNAL_FIELDS.has(k))
+
+  const rows = data.map((row) =>
+    headers
+      .map((h) => `"${String((row as Record<string, unknown>)[h] ?? '').replace(/"/g, '""')}"`)
+      .join(',')
   )
-  const csv = [headers.join(','), ...rows].join('\n')
+  const csv = [headers.map((h) => formatExportHeader(h)).join(','), ...rows].join('\n')
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -79,12 +112,30 @@ export function exportToCSV(data: Partial<Student>[], filename: string): void {
   URL.revokeObjectURL(url)
 }
 
-export function exportToPDF(data: Partial<Student>[], queryText: string): void {
+export function exportToPDF(
+  data: Partial<Student>[],
+  queryText: string,
+  columns?: string[]
+): void {
   if (!data.length) return
-  const headers = Object.keys(data[0]) as string[]
+
+  const targetColumns =
+    columns && columns.length > 0
+      ? columns.filter((k) => !INTERNAL_FIELDS.has(k))
+      : Object.keys(data[0] || {}).filter((k) => !INTERNAL_FIELDS.has(k))
+
   const rows = data
-    .map(r => `<tr>${headers.map(h => `<td>${(r as Record<string,unknown>)[h] ?? ''}</td>`).join('')}</tr>`)
+    .map(
+      (r) =>
+        `<tr>${targetColumns
+          .map((h) => {
+            const formattedVal = formatExportValue(h, (r as Record<string, unknown>)[h])
+            return `<td>${formattedVal !== null && formattedVal !== undefined ? formattedVal : ''}</td>`
+          })
+          .join('')}</tr>`
+    )
     .join('')
+
   const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Datara'
   const html = `<!DOCTYPE html><html><head><title>Student Data Export</title>
 <style>
@@ -100,11 +151,14 @@ export function exportToPDF(data: Partial<Student>[], queryText: string): void {
 <h2>${appName} — MIT-WPU Student Data Export</h2>
 <p>Query: ${queryText} &nbsp;·&nbsp; Exported: ${new Date().toLocaleString('en-IN')} &nbsp;·&nbsp; Total: ${data.length} students</p>
 <table>
-  <thead><tr>${headers.map(h => `<th>${h.toUpperCase()}</th>`).join('')}</tr></thead>
+  <thead><tr>${targetColumns.map((h) => `<th>${formatExportHeader(h).toUpperCase()}</th>`).join('')}</tr></thead>
   <tbody>${rows}</tbody>
 </table>
 <script>window.onload = () => window.print()<\/script>
 </body></html>`
   const w = window.open('', '_blank')
-  if (w) { w.document.write(html); w.document.close() }
+  if (w) {
+    w.document.write(html)
+    w.document.close()
+  }
 }

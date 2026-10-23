@@ -39,6 +39,7 @@ export default function DashboardPage() {
   const [loadingText, setLoadingText] = useState('Processing query...')
   const [lastQuery, setLastQuery] = useState('')
   const [emailSentTimestamp, setEmailSentTimestamp] = useState<number>(0)
+  const [queriedColumns, setQueriedColumns] = useState<string[]>([])
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({
     message: '',
     visible: false,
@@ -244,7 +245,44 @@ export default function DashboardPage() {
         return
       }
 
-      let fetchedRows = data.rows || []
+      const internalFields = new Set([
+        'lca1_days_left',
+        'lca1_buffer_left',
+        'lca1_detention_pending',
+        'lca2_days_left',
+        'lca2_buffer_left',
+        'lca2_detention_pending',
+        'lca3_days_left',
+        'lca3_buffer_left',
+        'lca3_detention_pending',
+        'updated_at',
+        'id',
+        'created_at',
+      ])
+
+      const detectedFields = (
+        data.fields && data.fields.length > 0
+          ? data.fields
+          : data.rows && data.rows[0]
+          ? Object.keys(data.rows[0])
+          : ['roll_no', 'name', 'panel']
+      ).filter((f) => !internalFields.has(f))
+
+      setQueriedColumns(detectedFields)
+
+      // Ensure each row strictly contains ONLY the queried columns
+      let fetchedRows = (data.rows || []).map((row) => {
+        const cleanRow: Record<string, unknown> = {}
+        const keysToKeep =
+          detectedFields.length > 0
+            ? detectedFields
+            : Object.keys(row).filter((k) => !internalFields.has(k))
+        keysToKeep.forEach((k) => {
+          cleanRow[k] = (row as any)[k]
+        })
+        return cleanRow as Partial<Student>
+      })
+
       try {
         const stored = typeof window !== 'undefined' ? localStorage.getItem('dq_student_marks_updates') : null
         if (stored) {
@@ -252,7 +290,13 @@ export default function DashboardPage() {
           fetchedRows = fetchedRows.map((s) => {
             const roll = s.roll_no || ''
             if (map[roll]) {
-              return { ...s, ...map[roll] }
+              const updated = { ...s }
+              for (const key of Object.keys(s)) {
+                if (key in map[roll] && map[roll][key] !== undefined) {
+                  (updated as any)[key] = map[roll][key]
+                }
+              }
+              return updated
             }
             return s
           })
@@ -384,6 +428,7 @@ export default function DashboardPage() {
         open={showExportModal}
         totalCount={allResults.length}
         data={allResults}
+        columns={queriedColumns}
         queryText={lastQuery}
         onClose={() => {
           setShowExportModal(false)

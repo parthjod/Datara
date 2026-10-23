@@ -61,6 +61,7 @@ export interface QueryApiResponse {
   reason?: string
   rows: Partial<Student>[]
   totalCount: number
+  fields?: string[]
 }
 
 export type ExportFormat = 'excel' | 'pdf'

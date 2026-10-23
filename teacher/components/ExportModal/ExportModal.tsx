@@ -9,6 +9,7 @@ interface ExportModalProps {
   open: boolean
   totalCount: number
   data: Partial<Student>[]
+  columns?: string[]
   queryText: string
   onClose: () => void
   onSendEmail?: () => void
@@ -18,6 +19,7 @@ export function ExportModal({
   open,
   totalCount,
   data,
+  columns,
   queryText,
   onClose,
   onSendEmail,
@@ -45,12 +47,12 @@ export function ExportModal({
 
   const handleExportExcel = () => {
     const filename = `student_export_${new Date().toISOString().slice(0, 10)}`
-    exportToExcel(data, filename)
+    exportToExcel(data, filename, columns)
     onClose()
   }
 
   const handleExportPDF = () => {
-    exportToPDF(data, queryText)
+    exportToPDF(data, queryText, columns)
     onClose()
   }
 
