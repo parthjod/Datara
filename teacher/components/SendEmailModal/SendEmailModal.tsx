@@ -147,6 +147,11 @@ MIT-WPU, Pune`
       if (!res.ok) throw new Error('Failed to send notification emails')
 
       const result = await res.json()
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('email-dispatched', { detail: { count: result.count } })
+        )
+      }
       onSuccess(result.count || recipients.length)
       onClose()
     } catch (err) {

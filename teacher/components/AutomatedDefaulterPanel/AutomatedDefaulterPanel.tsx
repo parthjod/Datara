@@ -6,9 +6,10 @@ import styles from './AutomatedDefaulterPanel.module.css'
 
 interface AutomatedDefaulterPanelProps {
   onRunComplete?: (summary: Record<string, number>) => void
+  refreshTrigger?: number | string
 }
 
-export function AutomatedDefaulterPanel({ onRunComplete }: AutomatedDefaulterPanelProps) {
+export function AutomatedDefaulterPanel({ onRunComplete, refreshTrigger }: AutomatedDefaulterPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [running, setRunning] = useState(false)
   const [resetting, setResetting] = useState(false)
@@ -26,14 +27,26 @@ export function AutomatedDefaulterPanel({ onRunComplete }: AutomatedDefaulterPan
       if (res.ok) {
         const data = await res.json()
         if (data.state) setState(data.state)
-        if (data.logs) setRecentLogs(data.logs)
+        if (data.logs) setRecentLogs(data.logs.slice(0, 20))
       }
     } catch {}
   }
 
   useEffect(() => {
     loadStatus()
-  }, [])
+
+    const handleEmailDispatched = () => {
+      loadStatus()
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('email-dispatched', handleEmailDispatched)
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('email-dispatched', handleEmailDispatched)
+      }
+    }
+  }, [refreshTrigger])
 
   const handleRunDaily = async () => {
     if (running) return
@@ -44,7 +57,7 @@ export function AutomatedDefaulterPanel({ onRunComplete }: AutomatedDefaulterPan
         const data = await res.json()
         setState(data.state)
         setLastSummary(data.summary)
-        setRecentLogs(data.recentLogs || [])
+        setRecentLogs(data.recentLogs ? data.recentLogs.slice(0, 20) : [])
         onRunComplete?.(data.summary)
       }
     } catch (err) {
@@ -81,6 +94,7 @@ export function AutomatedDefaulterPanel({ onRunComplete }: AutomatedDefaulterPan
   const getBadgeClass = (type: SentEmail['type']): string => {
     if (type.includes('attendance')) return styles.badgeAttendance
     if (type.includes('marks')) return styles.badgeMarks
+    if (type.includes('both')) return styles.badgeBoth
     if (type.includes('detained')) return styles.badgeDetained
     return styles.badgeLca
   }
@@ -88,6 +102,9 @@ export function AutomatedDefaulterPanel({ onRunComplete }: AutomatedDefaulterPan
   const formatTypeLabel = (type: SentEmail['type']): string => {
     if (type === 'daily_attendance_reminder') return 'Daily Attendance'
     if (type === 'daily_marks_reminder') return 'Daily Marks'
+    if (type === 'attendance_defaulter') return 'Attendance Defaulter'
+    if (type === 'marks_defaulter') return 'Academic Defaulter'
+    if (type === 'both_defaulters') return 'Dual Defaulter'
     if (type === 'lca_reminder') return 'LCA Countdown'
     if (type === 'lca_deadline_passed') return 'LCA Day 10 Passed'
     if (type === 'lca_buffer_warning') return 'LCA Buffer Warning'
@@ -188,19 +205,40 @@ export function AutomatedDefaulterPanel({ onRunComplete }: AutomatedDefaulterPan
 
           {/* Recent Emails Feed */}
           <div>
-            <div className={styles.feedTitle}>Recent Automated Dispatch Feed</div>
+            <div className={styles.feedTitle}>
+              <span>Recent Automated Dispatch Feed</span>
+              {recentLogs.length > 0 && (
+                <span className={styles.feedCountBadge}>
+                  {Math.min(20, recentLogs.length)} Most Recent
+                </span>
+              )}
+            </div>
             <div className={styles.feedList}>
               {recentLogs.length === 0 ? (
-                <div style={{ padding: '1rem', color: 'var(--muted)', textAlign: 'center', fontSize: '0.82rem' }}>
-                  No automated emails dispatched yet. Click &quot;Run Daily Cycle (+1 Day)&quot; to simulate today&apos;s automated engine.
+                <div style={{ padding: '1.25rem', color: 'var(--muted)', textAlign: 'center', fontSize: '0.85rem' }}>
+                  No automated or manual emails dispatched yet. Send emails via &quot;Send Email&quot; or click &quot;Run Daily Cycle (+1 Day)&quot;.
                 </div>
               ) : (
-                recentLogs.map((log) => (
+                recentLogs.slice(0, 20).map((log) => (
                   <div key={log.id} className={styles.feedItem}>
                     <div className={styles.feedMeta}>
                       <span className={styles.feedSubject}>{log.subject}</span>
                       <span className={styles.feedRecipient}>
-                        To: {log.recipientName} ({log.recipientEmail}) · Roll: {log.rollNo} (Panel {log.panel})
+                        <strong>To:</strong> {log.recipientEmail}
+                        {log.recipientName && log.recipientName !== 'Student' && (
+                          <span> ({log.recipientName})</span>
+                        )}
+                        {log.rollNo && log.rollNo !== 'N/A' && (
+                          <span> · Roll: {log.rollNo}</span>
+                        )}
+                        {log.panel && log.panel !== 'N/A' && (
+                          <span> (Panel {log.panel})</span>
+                        )}
+                        {log.timestamp && (
+                          <span className={styles.feedTime}>
+                            {' '}· {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        )}
                       </span>
                     </div>
                     <span className={`${styles.feedBadge} ${getBadgeClass(log.type)}`}>

@@ -38,10 +38,12 @@ export default function DashboardPage() {
   const [showSendEmailModal, setShowSendEmailModal] = useState(false)
   const [loadingText, setLoadingText] = useState('Processing query...')
   const [lastQuery, setLastQuery] = useState('')
+  const [emailSentTimestamp, setEmailSentTimestamp] = useState<number>(0)
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({
     message: '',
     visible: false,
   })
+
 
 
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -310,6 +312,7 @@ export default function DashboardPage() {
 
         <section className={styles.section} style={{ transform: 'translateY(16px)' }}>
           <AutomatedDefaulterPanel
+            refreshTrigger={emailSentTimestamp}
             onRunComplete={(summary) =>
               showToast(
                 `✓ Daily cycle executed: ${summary.totalEmails} automated notifications dispatched`
@@ -337,6 +340,7 @@ export default function DashboardPage() {
         queryText={lastQuery}
         onClose={() => setShowSendEmailModal(false)}
         onSuccess={(count) => {
+          setEmailSentTimestamp(Date.now())
           showToast(`✓ Successfully dispatched ${count} customized defaulter notification emails!`)
         }}
       />

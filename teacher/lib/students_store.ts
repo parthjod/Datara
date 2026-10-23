@@ -47,18 +47,27 @@ export function saveStoredStudents(students: Student[]): void {
   }
 }
 
+let inMemoryLogs: SentEmail[] | null = null
+
 export function getEmailLogs(): SentEmail[] {
+  if (inMemoryLogs) {
+    return inMemoryLogs
+  }
   try {
     const filePath = getFilePath('email_logs.json')
     if (fs.existsSync(filePath)) {
       const raw = fs.readFileSync(filePath, 'utf-8')
       const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) return parsed
+      if (Array.isArray(parsed)) {
+        inMemoryLogs = parsed
+        return inMemoryLogs
+      }
     }
   } catch (err) {
     console.warn('Error reading email logs:', err)
   }
-  return []
+  inMemoryLogs = []
+  return inMemoryLogs
 }
 
 export function appendEmailLogs(newLogs: SentEmail[]): void {
@@ -67,12 +76,14 @@ export function appendEmailLogs(newLogs: SentEmail[]): void {
     const combined = [...newLogs, ...existing]
     // Keep max 500 recent logs
     const capped = combined.slice(0, 500)
+    inMemoryLogs = capped
     const filePath = getFilePath('email_logs.json')
     fs.writeFileSync(filePath, JSON.stringify(capped, null, 2), 'utf-8')
   } catch (err) {
     console.error('Error appending email logs:', err)
   }
 }
+
 
 export function getWorkflowState(): WorkflowState {
   try {

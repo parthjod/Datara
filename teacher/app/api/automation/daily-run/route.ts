@@ -23,7 +23,7 @@ export async function POST() {
         success: true,
         state: result.state,
         summary: result.summary,
-        recentLogs: result.newLogs.slice(0, 20),
+        recentLogs: getEmailLogs().slice(0, 20),
       },
       { headers: CORS_HEADERS }
     )
@@ -39,7 +39,7 @@ export async function POST() {
 export async function GET() {
   try {
     const state = getWorkflowState()
-    const logs = getEmailLogs().slice(0, 50)
+    const logs = getEmailLogs().slice(0, 20)
     return NextResponse.json({ state, logs }, { headers: CORS_HEADERS })
   } catch (err) {
     return NextResponse.json({ error: 'Failed to fetch status' }, { status: 500, headers: CORS_HEADERS })
