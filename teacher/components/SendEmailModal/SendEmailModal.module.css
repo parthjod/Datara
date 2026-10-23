@@ -184,8 +184,9 @@
 }
 
 .recipientListWrap {
-  max-height: 180px;
+  max-height: 220px;
   overflow-y: auto;
+  overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: 8px;
 }
@@ -194,21 +195,26 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
+  min-width: 500px;
 }
 
 .recipientTable th {
   text-align: left;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.72rem;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--muted);
   background: var(--surface);
   border-bottom: 1px solid var(--border);
+  white-space: nowrap;
 }
 
 .recipientTable td {
-  padding: 0.55rem 0.75rem;
+  padding: 0.6rem 0.85rem;
   border-bottom: 1px solid var(--border);
+  white-space: nowrap;
 }
 
 .footer {
