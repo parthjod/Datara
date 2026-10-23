@@ -174,13 +174,25 @@ export default function UpdateMarksPage() {
           const map = JSON.parse(stored)
           rows = rows.map((s) => {
             const roll = s.roll_no || ''
-            if (map[roll]) {
-              return { ...s, ...map[roll] }
-            }
-            return s
+            const next = map[roll] ? { ...s, ...map[roll] } : { ...s }
+            const c1 = Number(next.cca1 ?? 0)
+            const c2 = Number(next.cca2 ?? 0)
+            const mid = Number(next.midterm ?? 0)
+            next.aggregate = c1 + c2 + mid
+            return next
           })
+        } else {
+          rows = rows.map((s) => ({
+            ...s,
+            aggregate: (Number(s.cca1) || 0) + (Number(s.cca2) || 0) + (Number(s.midterm) || 0),
+          }))
         }
-      } catch {}
+      } catch {
+        rows = rows.map((s) => ({
+          ...s,
+          aggregate: (Number(s.cca1) || 0) + (Number(s.cca2) || 0) + (Number(s.midterm) || 0),
+        }))
+      }
       setStudents(rows)
       setQueryInterpretation(data.interpretation || `Students matching: "${promptText}"`)
       setLastExecutedQuery(promptText)
@@ -299,29 +311,46 @@ export default function UpdateMarksPage() {
     try {
       const updates = Array.from(modifiedRolls).map((rollNo) => {
         const edits = draftMarks[rollNo] || {}
+        const currentStudent = students.find((s) => s.roll_no === rollNo)
+        const c1 = Number(edits.cca1 ?? currentStudent?.cca1 ?? 0)
+        const c2 = Number(edits.cca2 ?? currentStudent?.cca2 ?? 0)
+        const mid = Number(edits.midterm ?? currentStudent?.midterm ?? 0)
+        const agg = c1 + c2 + mid
         return {
           roll_no: rollNo,
           ...edits,
+          aggregate: agg,
         }
       })
 
-      // 1. Instantly apply edits to local students state so values reflect live
+      // 1. Instantly apply edits to local students state and dynamically compute aggregate
       setStudents((prev) =>
         prev.map((s) => {
           const edits = draftMarks[s.roll_no || '']
           if (edits) {
-            return { ...s, ...edits }
+            const nextStudent = { ...s, ...edits }
+            const c1 = Number(nextStudent.cca1 ?? 0)
+            const c2 = Number(nextStudent.cca2 ?? 0)
+            const mid = Number(nextStudent.midterm ?? 0)
+            nextStudent.aggregate = c1 + c2 + mid
+            return nextStudent
           }
           return s
         })
       )
 
-      // 2. Persist cumulative updates in localStorage
+      // 2. Persist cumulative updates in localStorage with dynamically computed aggregate
       try {
         const stored = localStorage.getItem('dq_student_marks_updates')
         const map = stored ? JSON.parse(stored) : {}
         updates.forEach((u) => {
-          map[u.roll_no] = { ...(map[u.roll_no] || {}), ...u }
+          const prevRec = map[u.roll_no] || {}
+          const merged = { ...prevRec, ...u }
+          const c1 = Number(merged.cca1 ?? 0)
+          const c2 = Number(merged.cca2 ?? 0)
+          const mid = Number(merged.midterm ?? 0)
+          merged.aggregate = c1 + c2 + mid
+          map[u.roll_no] = merged
         })
         localStorage.setItem('dq_student_marks_updates', JSON.stringify(map))
       } catch {}
@@ -353,12 +382,18 @@ export default function UpdateMarksPage() {
 
       showToast(`✓ Marks locked and updated live in database!`)
 
-      // 5. Merge returned updated students if available
+      // 5. Merge returned updated students if available with dynamic aggregate
       if (Array.isArray(result.students) && result.students.length > 0) {
         setStudents((prev) =>
           prev.map((s) => {
             const found = result.students.find((u: any) => u.roll_no === s.roll_no)
-            return found ? { ...s, ...found } : s
+            if (!found) return s
+            const nextStudent = { ...s, ...found }
+            const c1 = Number(nextStudent.cca1 ?? 0)
+            const c2 = Number(nextStudent.cca2 ?? 0)
+            const mid = Number(nextStudent.midterm ?? 0)
+            nextStudent.aggregate = c1 + c2 + mid
+            return nextStudent
           })
         )
       }

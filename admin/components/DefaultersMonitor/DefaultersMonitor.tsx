@@ -65,7 +65,12 @@ export function DefaultersMonitor({ onNotify }: DefaultersMonitorProps) {
             const updatesMap: Record<string, Partial<Student>> = JSON.parse(rawUpdates)
             fetchedStudents = fetchedStudents.map((st) => {
               if (updatesMap[st.roll_no]) {
-                return { ...st, ...updatesMap[st.roll_no] }
+                const updated = { ...st, ...updatesMap[st.roll_no] }
+                const c1 = Number(updated.cca1 ?? 0)
+                const c2 = Number(updated.cca2 ?? 0)
+                const mid = Number(updated.midterm ?? 0)
+                updated.aggregate = c1 + c2 + mid
+                return updated
               }
               return st
             })
@@ -74,8 +79,20 @@ export function DefaultersMonitor({ onNotify }: DefaultersMonitorProps) {
           console.error(e)
         }
 
+        // Dynamically compute aggregate for every student row
+        fetchedStudents = fetchedStudents.map((st) => ({
+          ...st,
+          aggregate: (Number(st.cca1) || 0) + (Number(st.cca2) || 0) + (Number(st.midterm) || 0),
+        }))
+
         setStudents(fetchedStudents)
-        if (data.metrics) setMetrics(data.metrics)
+        if (data.metrics) {
+          const marksDefaultersCount = fetchedStudents.filter((s) => getAgg(s) < 24).length
+          setMetrics({
+            ...data.metrics,
+            marksDefaulters: marksDefaultersCount,
+          })
+        }
       }
     } catch (err) {
       console.error(err)
@@ -115,7 +132,13 @@ export function DefaultersMonitor({ onNotify }: DefaultersMonitorProps) {
           setStudents((prev) =>
             prev.map((s) => {
               const match = updates.find((u: any) => u.roll_no === s.roll_no)
-              return match ? { ...s, ...match } : s
+              if (!match) return s
+              const updated = { ...s, ...match }
+              const c1 = Number(updated.cca1 ?? 0)
+              const c2 = Number(updated.cca2 ?? 0)
+              const mid = Number(updated.midterm ?? 0)
+              updated.aggregate = c1 + c2 + mid
+              return updated
             })
           )
           loadStudents(true)
@@ -150,7 +173,15 @@ export function DefaultersMonitor({ onNotify }: DefaultersMonitorProps) {
               const updated = payload.new as Partial<Student>
               if (updated && updated.roll_no) {
                 setStudents((prev) =>
-                  prev.map((s) => (s.roll_no === updated.roll_no ? { ...s, ...updated } : s))
+                  prev.map((s) => {
+                    if (s.roll_no !== updated.roll_no) return s
+                    const next = { ...s, ...updated }
+                    const c1 = Number(next.cca1 ?? 0)
+                    const c2 = Number(next.cca2 ?? 0)
+                    const mid = Number(next.midterm ?? 0)
+                    next.aggregate = c1 + c2 + mid
+                    return next
+                  })
                 )
                 loadStudents(true)
               }
@@ -213,8 +244,7 @@ export function DefaultersMonitor({ onNotify }: DefaultersMonitorProps) {
   }
 
   const getAgg = (s: Student): number => {
-    if (s.aggregate !== undefined) return s.aggregate
-    return s.cca1 + s.cca2 + s.midterm
+    return (Number(s.cca1) || 0) + (Number(s.cca2) || 0) + (Number(s.midterm) || 0)
   }
 
   return (

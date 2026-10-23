@@ -172,6 +172,12 @@ export async function POST(req: NextRequest) {
                   ? (override as any)[key]
                   : (r as any)[key]
             }
+            if ('aggregate' in updated) {
+              const c1 = Number(override.cca1 ?? updated.cca1 ?? 0)
+              const c2 = Number(override.cca2 ?? updated.cca2 ?? 0)
+              const mid = Number(override.midterm ?? updated.midterm ?? 0)
+              updated.aggregate = override.aggregate !== undefined ? override.aggregate : c1 + c2 + mid
+            }
             return updated as Partial<Student>
           })
         }

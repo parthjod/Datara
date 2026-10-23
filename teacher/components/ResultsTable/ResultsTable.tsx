@@ -25,7 +25,11 @@ function formatColumnHeader(col: string): string {
   return col.replace(/_/g, ' ')
 }
 
-function formatCellValue(col: string, val: unknown): React.ReactNode {
+function formatCellValue(
+  col: string,
+  val: unknown,
+  row?: Record<string, unknown>
+): React.ReactNode {
   if (col === 'attendance' && val !== undefined && val !== null && val !== '') {
     const num = Number(val)
     if (num < 80) {
@@ -48,8 +52,19 @@ function formatCellValue(col: string, val: unknown): React.ReactNode {
     return <span>{String(val)} / 30</span>
   }
 
-  if (col === 'aggregate' && val !== undefined && val !== null && val !== '') {
-    const num = Number(val)
+  if (col === 'aggregate') {
+    let num: number
+    if (
+      row &&
+      (row.cca1 !== undefined || row.cca2 !== undefined || row.midterm !== undefined)
+    ) {
+      num = (Number(row.cca1) || 0) + (Number(row.cca2) || 0) + (Number(row.midterm) || 0)
+    } else if (val !== undefined && val !== null && val !== '') {
+      num = Number(val)
+    } else {
+      num = 0
+    }
+
     if (num < 24) {
       return (
         <span className={styles.defaulterPill}>
@@ -205,7 +220,11 @@ export function ResultsTable({
               >
                 {columns.map((col) => (
                   <td key={String(col)}>
-                    {formatCellValue(String(col), (row as Record<string, unknown>)[String(col)])}
+                    {formatCellValue(
+                      String(col),
+                      (row as Record<string, unknown>)[String(col)],
+                      row as Record<string, unknown>
+                    )}
                   </td>
                 ))}
               </tr>

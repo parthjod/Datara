@@ -151,6 +151,9 @@ export async function POST(req: NextRequest) {
         student.detained = false
       }
 
+      // Dynamically compute updated internal aggregate
+      student.aggregate = (Number(student.cca1) || 0) + (Number(student.cca2) || 0) + (Number(student.midterm) || 0)
+
       updatedStudents.push(student)
     }
 
@@ -187,6 +190,7 @@ export async function POST(req: NextRequest) {
           cca1: s.cca1,
           cca2: s.cca2,
           midterm: s.midterm,
+          aggregate: s.aggregate,
           lca1: s.lca1,
           lca2: s.lca2,
           lca3: s.lca3,

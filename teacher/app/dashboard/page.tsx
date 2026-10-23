@@ -154,7 +154,20 @@ export default function DashboardPage() {
           const applyUpdates = (list: Partial<Student>[]) =>
             list.map((s) => {
               const match = updates.find((u: any) => u.roll_no === s.roll_no)
-              return match ? { ...s, ...match } : s
+              if (!match) return s
+              const next: Partial<Student> = { ...s }
+              for (const k of Object.keys(s)) {
+                if (k in match && match[k] !== undefined) {
+                  (next as any)[k] = match[k]
+                }
+              }
+              const c1 = Number(match.cca1 ?? (next as any).cca1 ?? 0)
+              const c2 = Number(match.cca2 ?? (next as any).cca2 ?? 0)
+              const mid = Number(match.midterm ?? (next as any).midterm ?? 0)
+              if ('aggregate' in next || 'cca1' in next || 'cca2' in next || 'midterm' in next) {
+                next.aggregate = match.aggregate !== undefined ? match.aggregate : c1 + c2 + mid
+              }
+              return next
             })
           setAllResults((prev) => applyUpdates(prev))
           setResults((prev) => applyUpdates(prev))
@@ -175,7 +188,23 @@ export default function DashboardPage() {
               const updated = payload.new as Partial<Student>
               if (updated && updated.roll_no) {
                 const applyUpdate = (list: Partial<Student>[]) =>
-                  list.map((s) => (s.roll_no === updated.roll_no ? { ...s, ...updated } : s))
+                  list.map((s) => {
+                    if (s.roll_no !== updated.roll_no) return s
+                    const next: Partial<Student> = { ...s }
+                    for (const k of Object.keys(s)) {
+                      if (k in updated && (updated as any)[k] !== undefined) {
+                        (next as any)[k] = (updated as any)[k]
+                      }
+                    }
+                    const c1 = Number((updated as any).cca1 ?? (next as any).cca1 ?? 0)
+                    const c2 = Number((updated as any).cca2 ?? (next as any).cca2 ?? 0)
+                    const mid = Number((updated as any).midterm ?? (next as any).midterm ?? 0)
+                    if ('aggregate' in next || 'cca1' in next || 'cca2' in next || 'midterm' in next) {
+                      next.aggregate =
+                        (updated as any).aggregate !== undefined ? (updated as any).aggregate : c1 + c2 + mid
+                    }
+                    return next
+                  })
                 setAllResults((prev) => applyUpdate(prev))
                 setResults((prev) => applyUpdate(prev))
               }
@@ -295,6 +324,12 @@ export default function DashboardPage() {
                 if (key in map[roll] && map[roll][key] !== undefined) {
                   (updated as any)[key] = map[roll][key]
                 }
+              }
+              const c1 = Number(map[roll].cca1 ?? (updated as any).cca1 ?? 0)
+              const c2 = Number(map[roll].cca2 ?? (updated as any).cca2 ?? 0)
+              const mid = Number(map[roll].midterm ?? (updated as any).midterm ?? 0)
+              if ('aggregate' in updated || 'cca1' in updated || 'cca2' in updated || 'midterm' in updated) {
+                updated.aggregate = map[roll].aggregate !== undefined ? map[roll].aggregate : c1 + c2 + mid
               }
               return updated
             }

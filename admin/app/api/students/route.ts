@@ -39,10 +39,16 @@ export async function GET(req: NextRequest) {
       } catch {}
     }
 
+    // Ensure aggregate is dynamically computed from latest CCA1, CCA2, and Midterm
+    allStudents = allStudents.map((s) => ({
+      ...s,
+      aggregate: (Number(s.cca1) || 0) + (Number(s.cca2) || 0) + (Number(s.midterm) || 0),
+    }))
+
     // Calculate overall metrics
     const attendanceDefaultersCount = allStudents.filter((s) => s.attendance < 80).length
     const marksDefaultersCount = allStudents.filter(
-      (s) => s.cca1 + s.cca2 + s.midterm < 24
+      (s) => (s.aggregate ?? (s.cca1 + s.cca2 + s.midterm)) < 24
     ).length
     const lcaDefaultersCount = allStudents.filter(
       (s) => s.lca1 === null || s.lca2 === null || s.lca3 === null || s.lca1 === 0 || s.lca2 === 0 || s.lca3 === 0
@@ -59,7 +65,7 @@ export async function GET(req: NextRequest) {
     if (category === 'attendance') {
       filtered = filtered.filter((s) => s.attendance < 80)
     } else if (category === 'marks') {
-      filtered = filtered.filter((s) => s.cca1 + s.cca2 + s.midterm < 24)
+      filtered = filtered.filter((s) => (s.aggregate ?? (s.cca1 + s.cca2 + s.midterm)) < 24)
     } else if (category === 'lca') {
       filtered = filtered.filter(
         (s) => s.lca1 === null || s.lca2 === null || s.lca3 === null || s.lca1 === 0 || s.lca2 === 0 || s.lca3 === 0

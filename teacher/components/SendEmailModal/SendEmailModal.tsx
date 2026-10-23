@@ -135,10 +135,10 @@ export function SendEmailModal({
 
   const isMarksDef = (s: Partial<Student>): boolean => {
     if (!hasAggregate) return false
-    if (s.aggregate !== undefined && s.aggregate !== null) return Number(s.aggregate) < 24
-    if (s.cca1 !== undefined && s.cca2 !== undefined && s.midterm !== undefined) {
-      return Number(s.cca1) + Number(s.cca2) + Number(s.midterm) < 24
+    if (s.cca1 !== undefined || s.cca2 !== undefined || s.midterm !== undefined) {
+      return (Number(s.cca1) || 0) + (Number(s.cca2) || 0) + (Number(s.midterm) || 0) < 24
     }
+    if (s.aggregate !== undefined && s.aggregate !== null) return Number(s.aggregate) < 24
     return false
   }
 
@@ -177,10 +177,9 @@ export function SendEmailModal({
       previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),\n\nThis is an official academic notice from MIT World Peace University.\n\nYour current attendance is recorded at ${sampleAtt}%, which does not satisfy the mandatory university requirement of 80% attendance.\n\nYou are currently placed on the Departmental Defaulters List. Continued failure to maintain regular attendance will lead to examination debarment. Please resume attending all scheduled lectures immediately.\n\nDepartment of Computer Science & Engineering,\nMIT-WPU, Pune`
     } else if (filter === 'marks' || (!isAttDef(sampleStudent) && isMarksDef(sampleStudent))) {
       const aggScore =
-        sampleStudent.aggregate ??
-        (sampleCca1 !== undefined && sampleCca2 !== undefined && sampleMid !== undefined
-          ? Number(sampleCca1) + Number(sampleCca2) + Number(sampleMid)
-          : 'Below 24')
+        sampleCca1 !== undefined || sampleCca2 !== undefined || sampleMid !== undefined
+          ? (Number(sampleCca1) || 0) + (Number(sampleCca2) || 0) + (Number(sampleMid) || 0)
+          : sampleStudent.aggregate ?? 'Below 24'
       previewSubject = `ACADEMIC DEFICIENCY NOTICE: Internal Assessment Aggregate Below 24/60 (${aggScore}/60) — MIT-WPU`
       previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),\n\nThis is an official intimation regarding your continuous evaluation performance:\n• CCA-1 Score: ${sampleCca1 !== undefined ? `${sampleCca1} / 15` : 'N/A'}\n• CCA-2 Score: ${sampleCca2 !== undefined ? `${sampleCca2} / 15` : 'N/A'}\n• Mid-Term Examination: ${sampleMid !== undefined ? `${sampleMid} / 30` : 'N/A'}\n• Cumulative Aggregate: ${aggScore} / 60\n\nYour internal aggregate falls below the mandatory passing benchmark of 24/60. You are required to meet with your course instructor immediately for academic remediation.\n\nExamination Cell,\nMIT-WPU, Pune`
     } else if (isAttDef(sampleStudent) && isMarksDef(sampleStudent)) {

@@ -17,8 +17,21 @@ function formatExportHeader(key: string): string {
     .join(' ')
 }
 
-function formatExportValue(key: string, val: unknown): unknown {
-  if ((key === 'lca1' || key === 'lca2' || key === 'lca3')) {
+function formatExportValue(
+  key: string,
+  val: unknown,
+  row?: Record<string, unknown>
+): unknown {
+  if (key === 'aggregate') {
+    if (
+      row &&
+      (row.cca1 !== undefined || row.cca2 !== undefined || row.midterm !== undefined)
+    ) {
+      return (Number(row.cca1) || 0) + (Number(row.cca2) || 0) + (Number(row.midterm) || 0)
+    }
+    return val !== undefined && val !== null && val !== '' ? Number(val) : 0
+  }
+  if (key === 'lca1' || key === 'lca2' || key === 'lca3') {
     if (val === null || val === undefined || val === '') return 'Pending'
     if (Number(val) === 0) return '0 (Buffer Expired)'
   }
@@ -60,7 +73,11 @@ export function exportToExcel(
     const formattedRow: Record<string, unknown> = {}
     targetColumns.forEach((key) => {
       const formattedKey = formatExportHeader(key)
-      formattedRow[formattedKey] = formatExportValue(key, (row as Record<string, unknown>)[key])
+      formattedRow[formattedKey] = formatExportValue(
+        key,
+        (row as Record<string, unknown>)[key],
+        row as Record<string, unknown>
+      )
     })
     return formattedRow
   })
@@ -97,7 +114,14 @@ export function exportToCSV(
 
   const rows = data.map((row) =>
     headers
-      .map((h) => `"${String((row as Record<string, unknown>)[h] ?? '').replace(/"/g, '""')}"`)
+      .map((h) => {
+        const formattedVal = formatExportValue(
+          h,
+          (row as Record<string, unknown>)[h],
+          row as Record<string, unknown>
+        )
+        return `"${String(formattedVal ?? '').replace(/"/g, '""')}"`
+      })
       .join(',')
   )
   const csv = [headers.map((h) => formatExportHeader(h)).join(','), ...rows].join('\n')
@@ -129,7 +153,11 @@ export function exportToPDF(
       (r) =>
         `<tr>${targetColumns
           .map((h) => {
-            const formattedVal = formatExportValue(h, (r as Record<string, unknown>)[h])
+            const formattedVal = formatExportValue(
+              h,
+              (r as Record<string, unknown>)[h],
+              r as Record<string, unknown>
+            )
             return `<td>${formattedVal !== null && formattedVal !== undefined ? formattedVal : ''}</td>`
           })
           .join('')}</tr>`
