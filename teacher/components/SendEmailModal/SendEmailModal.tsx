@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { Student } from '@/types'
 import styles from './SendEmailModal.module.css'
 
@@ -93,6 +93,8 @@ export function SendEmailModal({
   const [filter, setFilter] = useState<FilterCategory>('all')
   const [sending, setSending] = useState(false)
   const [activeTab, setActiveTab] = useState<'preview' | 'recipients'>('preview')
+  const [customNoticeText, setCustomNoticeText] = useState<string>('')
+  const [hasManuallyEdited, setHasManuallyEdited] = useState(false)
 
   // Check which columns were actually returned by the teacher query
   const columns = data.length > 0 ? (Object.keys(data[0]) as (keyof Student | string)[]) : []
@@ -122,6 +124,7 @@ export function SendEmailModal({
       } else {
         setFilter('all')
       }
+      setHasManuallyEdited(false)
     }
   }, [open, hasAttendance, hasAggregate])
 
@@ -166,104 +169,68 @@ export function SendEmailModal({
   const sampleCca2 = sampleStudent.cca2
   const sampleMid = sampleStudent.midterm
 
-  let previewSubject = ''
-  let previewContent = ''
+  const generatedTemplate = useMemo(() => {
+    let previewSubject = ''
+    let previewContent = ''
 
-  if (filter === 'attendance' || (isAttDef(sampleStudent) && !isMarksDef(sampleStudent))) {
-    previewSubject = `URGENT: Low Attendance Warning (${sampleAtt}% recorded) — MIT-WPU`
-    previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),
+    if (filter === 'attendance' || (isAttDef(sampleStudent) && !isMarksDef(sampleStudent))) {
+      previewSubject = `URGENT: Low Attendance Warning (${sampleAtt}% recorded) — MIT-WPU`
+      previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),\n\nThis is an official academic notice from MIT World Peace University.\n\nYour current attendance is recorded at ${sampleAtt}%, which does not satisfy the mandatory university requirement of 80% attendance.\n\nYou are currently placed on the Departmental Defaulters List. Continued failure to maintain regular attendance will lead to examination debarment. Please resume attending all scheduled lectures immediately.\n\nDepartment of Computer Science & Engineering,\nMIT-WPU, Pune`
+    } else if (filter === 'marks' || (!isAttDef(sampleStudent) && isMarksDef(sampleStudent))) {
+      const aggScore =
+        sampleStudent.aggregate ??
+        (sampleCca1 !== undefined && sampleCca2 !== undefined && sampleMid !== undefined
+          ? Number(sampleCca1) + Number(sampleCca2) + Number(sampleMid)
+          : 'Below 24')
+      previewSubject = `ACADEMIC DEFICIENCY NOTICE: Internal Assessment Aggregate Below 24/60 (${aggScore}/60) — MIT-WPU`
+      previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),\n\nThis is an official intimation regarding your continuous evaluation performance:\n• CCA-1 Score: ${sampleCca1 !== undefined ? `${sampleCca1} / 15` : 'N/A'}\n• CCA-2 Score: ${sampleCca2 !== undefined ? `${sampleCca2} / 15` : 'N/A'}\n• Mid-Term Examination: ${sampleMid !== undefined ? `${sampleMid} / 30` : 'N/A'}\n• Cumulative Aggregate: ${aggScore} / 60\n\nYour internal aggregate falls below the mandatory passing benchmark of 24/60. You are required to meet with your course instructor immediately for academic remediation.\n\nExamination Cell,\nMIT-WPU, Pune`
+    } else if (isAttDef(sampleStudent) && isMarksDef(sampleStudent)) {
+      previewSubject = `CRITICAL NOTICE: Departmental Defaulter Status Intimation — MIT-WPU`
+      previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),\n\nThis is an official intimation that you are currently listed on the MIT-WPU Defaulters List for the current semester:\n• Current Attendance: ${sampleAtt}% (Required: ≥ 80%)\n• Internal Assessment: Deficiency flagged\n\nPlease report to your department mentor and panel coordinator immediately to address these deficiencies.\n\nAcademic Monitoring Committee,\nMIT-WPU, Pune`
+    } else if (sampleCca1 !== undefined && !hasAggregate && !hasAttendance) {
+      // Specific CCA-1 assessment notice
+      previewSubject = `ACADEMIC NOTICE: CCA-1 Evaluation Recorded — MIT-WPU`
+      previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),\n\nThis is an official intimation regarding your Continuous Assessment evaluation at MIT World Peace University:\n• CCA-1 Score: ${sampleCca1} / 15\n\nPlease review your recorded evaluation in your student portal. For any queries or clarifications, consult your course faculty.\n\nDepartment of Computer Science & Engineering,\nMIT-WPU, Pune`
+    } else if (sampleCca2 !== undefined && !hasAggregate && !hasAttendance) {
+      // Specific CCA-2 assessment notice
+      previewSubject = `ACADEMIC NOTICE: CCA-2 Evaluation Recorded — MIT-WPU`
+      previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),\n\nThis is an official intimation regarding your Continuous Assessment evaluation at MIT World Peace University:\n• CCA-2 Score: ${sampleCca2} / 15\n\nPlease review your recorded evaluation in your student portal. For any queries or clarifications, consult your course faculty.\n\nDepartment of Computer Science & Engineering,\nMIT-WPU, Pune`
+    } else if (sampleMid !== undefined && !hasAggregate && !hasAttendance) {
+      // Specific Midterm assessment notice
+      previewSubject = `ACADEMIC NOTICE: Mid-Term Examination Score Recorded — MIT-WPU`
+      previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),\n\nThis is an official intimation regarding your Mid-Term examination performance at MIT World Peace University:\n• Mid-Term Examination: ${sampleMid} / 30\n\nPlease review your recorded evaluation in your student portal. For any queries or clarifications, consult your course faculty.\n\nExamination Cell,\nMIT-WPU, Pune`
+    } else {
+      // General student notification
+      previewSubject = `ACADEMIC NOTICE: Departmental Student Communication — MIT-WPU`
+      previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),\n\nThis is an official communication from the School of Computer Science & Engineering, MIT World Peace University.\n\nPlease review your latest course updates and academic evaluation details in your student portal.\n\nDepartment of Computer Science & Engineering,\nMIT-WPU, Pune`
+    }
 
-This is an official academic notice from MIT World Peace University.
+    return { previewSubject, previewContent }
+  }, [
+    filter,
+    sampleStudent,
+    sampleAtt,
+    sampleCca1,
+    sampleCca2,
+    sampleMid,
+    hasAggregate,
+    hasAttendance,
+  ])
 
-Your current attendance is recorded at ${sampleAtt}%, which does not satisfy the mandatory university requirement of 80% attendance.
-
-You are currently placed on the Departmental Defaulters List. Continued failure to maintain regular attendance will lead to examination debarment. Please resume attending all scheduled lectures immediately.
-
-Department of Computer Science & Engineering,
-MIT-WPU, Pune`
-  } else if (filter === 'marks' || (!isAttDef(sampleStudent) && isMarksDef(sampleStudent))) {
-    const aggScore =
-      sampleStudent.aggregate ??
-      (sampleCca1 !== undefined && sampleCca2 !== undefined && sampleMid !== undefined
-        ? Number(sampleCca1) + Number(sampleCca2) + Number(sampleMid)
-        : 'Below 24')
-    previewSubject = `ACADEMIC DEFICIENCY NOTICE: Internal Assessment Aggregate Below 24/60 (${aggScore}/60) — MIT-WPU`
-    previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),
-
-This is an official intimation regarding your continuous evaluation performance:
-• CCA-1 Score: ${sampleCca1 !== undefined ? `${sampleCca1} / 15` : 'N/A'}
-• CCA-2 Score: ${sampleCca2 !== undefined ? `${sampleCca2} / 15` : 'N/A'}
-• Mid-Term Examination: ${sampleMid !== undefined ? `${sampleMid} / 30` : 'N/A'}
-• Cumulative Aggregate: ${aggScore} / 60
-
-Your internal aggregate falls below the mandatory passing benchmark of 24/60. You are required to meet with your course instructor immediately for academic remediation.
-
-Examination Cell,
-MIT-WPU, Pune`
-  } else if (isAttDef(sampleStudent) && isMarksDef(sampleStudent)) {
-    previewSubject = `CRITICAL NOTICE: Departmental Defaulter Status Intimation — MIT-WPU`
-    previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),
-
-This is an official intimation that you are currently listed on the MIT-WPU Defaulters List for the current semester:
-• Current Attendance: ${sampleAtt}% (Required: ≥ 80%)
-• Internal Assessment: Deficiency flagged
-
-Please report to your department mentor and panel coordinator immediately to address these deficiencies.
-
-Academic Monitoring Committee,
-MIT-WPU, Pune`
-  } else if (sampleCca1 !== undefined && !hasAggregate && !hasAttendance) {
-    // Specific CCA-1 assessment notice
-    previewSubject = `ACADEMIC NOTICE: CCA-1 Evaluation Recorded — MIT-WPU`
-    previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),
-
-This is an official intimation regarding your Continuous Assessment evaluation at MIT World Peace University:
-• CCA-1 Score: ${sampleCca1} / 15
-
-Please review your recorded evaluation in your student portal. For any queries or clarifications, consult your course faculty.
-
-Department of Computer Science & Engineering,
-MIT-WPU, Pune`
-  } else if (sampleCca2 !== undefined && !hasAggregate && !hasAttendance) {
-    // Specific CCA-2 assessment notice
-    previewSubject = `ACADEMIC NOTICE: CCA-2 Evaluation Recorded — MIT-WPU`
-    previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),
-
-This is an official intimation regarding your Continuous Assessment evaluation at MIT World Peace University:
-• CCA-2 Score: ${sampleCca2} / 15
-
-Please review your recorded evaluation in your student portal. For any queries or clarifications, consult your course faculty.
-
-Department of Computer Science & Engineering,
-MIT-WPU, Pune`
-  } else if (sampleMid !== undefined && !hasAggregate && !hasAttendance) {
-    // Specific Midterm assessment notice
-    previewSubject = `ACADEMIC NOTICE: Mid-Term Examination Score Recorded — MIT-WPU`
-    previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),
-
-This is an official intimation regarding your Mid-Term examination performance at MIT World Peace University:
-• Mid-Term Examination: ${sampleMid} / 30
-
-Please review your recorded evaluation in your student portal. For any queries or clarifications, consult your course faculty.
-
-Examination Cell,
-MIT-WPU, Pune`
-  } else {
-    // General student notification
-    previewSubject = `ACADEMIC NOTICE: Departmental Student Communication — MIT-WPU`
-    previewContent = `Dear ${sampleStudent.name || '[Student Name]'} (Roll: ${sampleStudent.roll_no || '[Roll No]'}, Panel ${sampleStudent.panel || '[Panel]'}),
-
-This is an official communication from the School of Computer Science & Engineering, MIT World Peace University.
-
-Please review your latest course updates and academic evaluation details in your student portal.
-
-Department of Computer Science & Engineering,
-MIT-WPU, Pune`
-  }
+  useEffect(() => {
+    if (!hasManuallyEdited) {
+      setCustomNoticeText(generatedTemplate.previewContent)
+    }
+  }, [generatedTemplate.previewContent, hasManuallyEdited])
 
   const handleSend = async () => {
     if (recipients.length === 0 || sending) return
     setSending(true)
+
+    const finalBody =
+      customNoticeText !== undefined && customNoticeText.trim() !== ''
+        ? customNoticeText
+        : generatedTemplate.previewContent
 
     try {
       const res = await fetch('/api/email/send', {
@@ -272,8 +239,8 @@ MIT-WPU, Pune`
         body: JSON.stringify({
           type: filter,
           recipients,
-          customSubject: previewSubject,
-          customBody: previewContent,
+          customSubject: generatedTemplate.previewSubject,
+          customBody: finalBody,
         }),
       })
 
@@ -409,8 +376,17 @@ MIT-WPU, Pune`
           {activeTab === 'preview' ? (
             <div className={styles.previewBox}>
               <div className={styles.previewHeader}>Customized Live Preview</div>
-              <div className={styles.previewSubject}>{previewSubject}</div>
-              <div className={styles.previewContent}>{previewContent}</div>
+              <div className={styles.previewSubject}>{generatedTemplate.previewSubject}</div>
+              <textarea
+                className={styles.previewContent}
+                value={customNoticeText}
+                onChange={(e) => {
+                  setHasManuallyEdited(true)
+                  setCustomNoticeText(e.target.value)
+                }}
+                rows={9}
+                spellCheck={false}
+              />
             </div>
           ) : (
             <div className={styles.recipientListWrap}>

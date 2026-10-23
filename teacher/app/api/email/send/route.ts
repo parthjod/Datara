@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
       let subject = customSubject || 'Official Notice: Student Defaulter Intimation — MIT-WPU'
       let messageBody = customBody || ''
 
-      if (!customSubject || !customBody) {
+      if (!customBody) {
         if (isAttDef && isMarksDef) {
           subject = `CRITICAL NOTICE: Dual Academic & Attendance Defaulter Warning — MIT-WPU`
           messageBody = `Dear ${name} (Roll No: ${rollNo}, Panel ${panel}),\n\nThis is an urgent official communication from the School of Computer Science & Engineering, MIT World Peace University.\n\nYou have been flagged as a dual defaulter in both Attendance and Internal Academic Assessments:\n• Current Attendance: ${att}% (Mandatory Minimum: 80%)\n• Internal Assessment Aggregate: ${agg}/60 (Passing Benchmark: 24/60)\n  [CCA-1: ${cca1}/15, CCA-2: ${cca2}/15, Midterm: ${mid}/30]\n\nYou are at immediate risk of semester debarment. Report to your Panel Coordinator and Head of Department by tomorrow 10:00 AM.\n\nAcademic Monitoring Cell,\nMIT-WPU, Pune`
@@ -110,6 +110,29 @@ export async function POST(req: NextRequest) {
         } else {
           subject = `URGENT: Low Attendance Defaulter Warning (${att !== undefined ? `${att}%` : '< 80%'}) — MIT-WPU`
           messageBody = `Dear ${name} (Roll No: ${rollNo}, Panel ${panel}),\n\nThis is an official intimation that your current class attendance is recorded at ${att !== undefined ? `${att}%` : 'below 80%'}, which does not satisfy the university mandatory requirement of 80% attendance.\n\nContinued failure to attend scheduled lectures and practical sessions will result in debarment from the upcoming End-Semester examinations.\n\nPlease resume regular class attendance immediately.\n\nDepartment of Computer Science & Engineering,\nMIT-WPU, Pune`
+        }
+      } else {
+        // If teacher edited or customized the notice, personalize greeting line per recipient
+        const greetingPattern = /^Dear\s+[^\n,]+(?:\s*\([^)]*\))?,?/i
+        if (greetingPattern.test(messageBody)) {
+          messageBody = messageBody.replace(
+            greetingPattern,
+            `Dear ${name} (Roll: ${rollNo}, Panel ${panel}),`
+          )
+        }
+        // Personalize per-student scores if the template retains the score markers
+        if (cca1 !== undefined) {
+          messageBody = messageBody.replace(/• CCA-1 Score:\s*[\w\d.]+\s*\/\s*15/g, `• CCA-1 Score: ${cca1} / 15`)
+        }
+        if (cca2 !== undefined) {
+          messageBody = messageBody.replace(/• CCA-2 Score:\s*[\w\d.]+\s*\/\s*15/g, `• CCA-2 Score: ${cca2} / 15`)
+        }
+        if (mid !== undefined) {
+          messageBody = messageBody.replace(/• Mid-Term Examination:\s*[\w\d.]+\s*\/\s*30/g, `• Mid-Term Examination: ${mid} / 30`)
+        }
+        if (att !== undefined) {
+          messageBody = messageBody.replace(/recorded at\s*\d+%/g, `recorded at ${att}%`)
+          messageBody = messageBody.replace(/• Current Attendance:\s*\d+%/g, `• Current Attendance: ${att}%`)
         }
       }
 

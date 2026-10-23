@@ -169,18 +169,47 @@
   border-bottom: 1px dashed var(--border);
 }
 
+.previewSubjectInput {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 0.45rem 0.65rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.previewSubjectInput:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px rgba(11, 11, 12, 0.08);
+}
+
 .previewContent {
   font-size: 0.82rem;
   line-height: 1.55;
   color: var(--ink);
-  white-space: pre-line;
-  max-height: 160px;
-  overflow-y: auto;
   font-family: monospace;
   background: #fff;
-  padding: 0.75rem;
+  padding: 0.85rem;
   border-radius: 6px;
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
+  width: 100%;
+  min-height: 175px;
+  max-height: 250px;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.previewContent:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px rgba(11, 11, 12, 0.08);
 }
 
 .recipientListWrap {
