@@ -143,9 +143,52 @@ export default function DashboardPage() {
       }
     } catch {}
 
+    // 3. BroadcastChannel for live marks sync from /update page
+    let marksBc: BroadcastChannel | null = null
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      marksBc = new BroadcastChannel('datara_marks_sync')
+      marksBc.onmessage = (event) => {
+        const updates = event.data?.updates
+        if (Array.isArray(updates) && updates.length > 0) {
+          const applyUpdates = (list: Partial<Student>[]) =>
+            list.map((s) => {
+              const match = updates.find((u: any) => u.roll_no === s.roll_no)
+              return match ? { ...s, ...match } : s
+            })
+          setAllResults((prev) => applyUpdates(prev))
+          setResults((prev) => applyUpdates(prev))
+        }
+      }
+    }
+
+    // 4. Supabase Realtime channel for live student marks updates
+    let studentsRealtimeChannel: any = null
+    if (isSupabaseConfigured && supabase) {
+      try {
+        studentsRealtimeChannel = supabase
+          .channel('teacher_dashboard_students_realtime')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'students' },
+            (payload: any) => {
+              const updated = payload.new as Partial<Student>
+              if (updated && updated.roll_no) {
+                const applyUpdate = (list: Partial<Student>[]) =>
+                  list.map((s) => (s.roll_no === updated.roll_no ? { ...s, ...updated } : s))
+                setAllResults((prev) => applyUpdate(prev))
+                setResults((prev) => applyUpdate(prev))
+              }
+            }
+          )
+          .subscribe()
+      } catch {}
+    }
+
     return () => {
       if (eventSource) eventSource.close()
+      if (marksBc) marksBc.close()
       if (realtimeChannel && supabase) supabase.removeChannel(realtimeChannel)
+      if (studentsRealtimeChannel && supabase) supabase.removeChannel(studentsRealtimeChannel)
     }
   }, [router])
 
@@ -201,9 +244,24 @@ export default function DashboardPage() {
         return
       }
 
+      let fetchedRows = data.rows || []
+      try {
+        const stored = typeof window !== 'undefined' ? localStorage.getItem('dq_student_marks_updates') : null
+        if (stored) {
+          const map = JSON.parse(stored)
+          fetchedRows = fetchedRows.map((s) => {
+            const roll = s.roll_no || ''
+            if (map[roll]) {
+              return { ...s, ...map[roll] }
+            }
+            return s
+          })
+        }
+      } catch {}
+
       setSqlQuery(data.sql || '')
-      setAllResults(data.rows || [])
-      setResults((data.rows || []).slice(0, 5))
+      setAllResults(fetchedRows)
+      setResults(fetchedRows.slice(0, 5))
       setInterpretation(data.interpretation || '')
       setResultsState('results')
     } catch (err) {

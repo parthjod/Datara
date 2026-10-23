@@ -151,6 +151,24 @@ export async function POST(req: NextRequest) {
       rows = executePostgresQuery(executedSql)
     }
 
+    // Merge Supabase student marks overrides if configured
+    if (isSupabaseConfigured && supabase && rows.length > 0) {
+      try {
+        const rollNos = rows.map((r) => r.roll_no).filter(Boolean)
+        const { data: supaRows } = await supabase
+          .from('students')
+          .select('*')
+          .in('roll_no', rollNos)
+        if (supaRows && supaRows.length > 0) {
+          const supaMap = new Map((supaRows as any[]).map((s) => [s.roll_no, s]))
+          rows = rows.map((r) => {
+            const override = supaMap.get(r.roll_no)
+            return override ? { ...r, ...override } : r
+          })
+        }
+      } catch {}
+    }
+
     // 5. Return data to frontend
     const responseData: QueryApiResponse = {
       allowed: true,

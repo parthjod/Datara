@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Student, QueryApiResponse } from '@/types'
 import { getSession } from '@/lib/auth'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { Toast } from '@/components/Toast/Toast'
 import styles from './update.module.css'
 
@@ -166,7 +167,20 @@ export default function UpdateMarksPage() {
         return
       }
 
-      const rows = data.rows || []
+      let rows = data.rows || []
+      try {
+        const stored = typeof window !== 'undefined' ? localStorage.getItem('dq_student_marks_updates') : null
+        if (stored) {
+          const map = JSON.parse(stored)
+          rows = rows.map((s) => {
+            const roll = s.roll_no || ''
+            if (map[roll]) {
+              return { ...s, ...map[roll] }
+            }
+            return s
+          })
+        }
+      } catch {}
       setStudents(rows)
       setQueryInterpretation(data.interpretation || `Students matching: "${promptText}"`)
       setLastExecutedQuery(promptText)
@@ -227,6 +241,51 @@ export default function UpdateMarksPage() {
     showToast('Unsaved changes discarded.')
   }
 
+  // Realtime marks sync from Supabase and cross-tab BroadcastChannel
+  useEffect(() => {
+    let bc: BroadcastChannel | null = null
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      bc = new BroadcastChannel('datara_marks_sync')
+      bc.onmessage = (event) => {
+        const updates = event.data?.updates
+        if (Array.isArray(updates)) {
+          setStudents((prev) =>
+            prev.map((s) => {
+              const match = updates.find((u: any) => u.roll_no === s.roll_no)
+              return match ? { ...s, ...match } : s
+            })
+          )
+        }
+      }
+    }
+
+    let supaChannel: any = null
+    if (isSupabaseConfigured && supabase) {
+      try {
+        supaChannel = supabase
+          .channel('teacher_students_realtime')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'students' },
+            (payload: any) => {
+              const updated = payload.new as Partial<Student>
+              if (updated && updated.roll_no) {
+                setStudents((prev) =>
+                  prev.map((s) => (s.roll_no === updated.roll_no ? { ...s, ...updated } : s))
+                )
+              }
+            }
+          )
+          .subscribe()
+      } catch {}
+    }
+
+    return () => {
+      if (bc) bc.close()
+      if (supaChannel && supabase) supabase.removeChannel(supaChannel)
+    }
+  }, [])
+
   // Lock Marks and sync live to database
   const handleLockMarks = async () => {
     if (modifiedRolls.size === 0) {
@@ -246,6 +305,38 @@ export default function UpdateMarksPage() {
         }
       })
 
+      // 1. Instantly apply edits to local students state so values reflect live
+      setStudents((prev) =>
+        prev.map((s) => {
+          const edits = draftMarks[s.roll_no || '']
+          if (edits) {
+            return { ...s, ...edits }
+          }
+          return s
+        })
+      )
+
+      // 2. Persist cumulative updates in localStorage
+      try {
+        const stored = localStorage.getItem('dq_student_marks_updates')
+        const map = stored ? JSON.parse(stored) : {}
+        updates.forEach((u) => {
+          map[u.roll_no] = { ...(map[u.roll_no] || {}), ...u }
+        })
+        localStorage.setItem('dq_student_marks_updates', JSON.stringify(map))
+      } catch {}
+
+      // 3. Broadcast across tabs and origins
+      try {
+        if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+          const bc = new BroadcastChannel('datara_marks_sync')
+          bc.postMessage({ type: 'marks-updated', updates })
+          bc.close()
+        }
+        window.dispatchEvent(new CustomEvent('marks-updated', { detail: { updates } }))
+      } catch {}
+
+      // 4. Send to server
       const res = await fetch('/api/marks/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -262,13 +353,20 @@ export default function UpdateMarksPage() {
 
       showToast(`✓ Marks locked and updated live in database!`)
 
-      // Reset edit mode and refetch fresh database records immediately
+      // 5. Merge returned updated students if available
+      if (Array.isArray(result.students) && result.students.length > 0) {
+        setStudents((prev) =>
+          prev.map((s) => {
+            const found = result.students.find((u: any) => u.roll_no === s.roll_no)
+            return found ? { ...s, ...found } : s
+          })
+        )
+      }
+
+      // Reset edit mode with updated values preserved
       setDraftMarks({})
       setModifiedRolls(new Set())
       setIsUnlocked(false)
-
-      // Re-fetch using last query to show immediate verified database reflection
-      await fetchStudentMarks(lastExecutedQuery || query)
     } catch (err) {
       console.error('Error updating marks on lock:', err)
       showToast('⚠️ Error communicating with database.')

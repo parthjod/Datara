@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Student, SentEmail, WorkflowState, ALL_PANELS } from '@/types'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import styles from './DefaultersMonitor.module.css'
 
 interface DefaultersMonitorProps {
@@ -50,7 +51,24 @@ export function DefaultersMonitor({ onNotify }: DefaultersMonitorProps) {
       const res = await fetch(`/api/students?${params.toString()}`)
       if (res.ok) {
         const data = await res.json()
-        setStudents(data.students || [])
+        let fetchedStudents: Student[] = data.students || []
+
+        try {
+          const rawUpdates = typeof window !== 'undefined' ? localStorage.getItem('dq_student_marks_updates') : null
+          if (rawUpdates) {
+            const updatesMap: Record<string, Partial<Student>> = JSON.parse(rawUpdates)
+            fetchedStudents = fetchedStudents.map((st) => {
+              if (updatesMap[st.roll_no]) {
+                return { ...st, ...updatesMap[st.roll_no] }
+              }
+              return st
+            })
+          }
+        } catch (e) {
+          console.error(e)
+        }
+
+        setStudents(fetchedStudents)
         if (data.metrics) setMetrics(data.metrics)
       }
     } catch (err) {
@@ -76,6 +94,77 @@ export function DefaultersMonitor({ onNotify }: DefaultersMonitorProps) {
 
   useEffect(() => {
     loadStudents()
+  }, [selectedPanel, selectedCategory, search])
+
+  // Real-time dynamic live updates without manual page refresh
+  useEffect(() => {
+    // 1. Cross-tab BroadcastChannel listener
+    let bc: BroadcastChannel | null = null
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      bc = new BroadcastChannel('datara_marks_sync')
+      bc.onmessage = (event) => {
+        const updates = event.data?.updates
+        if (Array.isArray(updates) && updates.length > 0) {
+          setStudents((prev) =>
+            prev.map((s) => {
+              const match = updates.find((u: any) => u.roll_no === s.roll_no)
+              return match ? { ...s, ...match } : s
+            })
+          )
+          loadStudents()
+        }
+      }
+    }
+
+    // 2. Storage event listener (fires across tabs on localStorage change)
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'dq_student_marks_updates') {
+        loadStudents()
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+
+    // 3. Tab focus listener (instantly sync when switching back to Admin portal tab)
+    const handleFocus = () => {
+      loadStudents()
+    }
+    window.addEventListener('focus', handleFocus)
+
+    // 4. Supabase Realtime subscription on students table
+    let supaChannel: any = null
+    if (isSupabaseConfigured && supabase) {
+      try {
+        supaChannel = supabase
+          .channel('admin_students_realtime')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'students' },
+            (payload: any) => {
+              const updated = payload.new as Partial<Student>
+              if (updated && updated.roll_no) {
+                setStudents((prev) =>
+                  prev.map((s) => (s.roll_no === updated.roll_no ? { ...s, ...updated } : s))
+                )
+                loadStudents()
+              }
+            }
+          )
+          .subscribe()
+      } catch {}
+    }
+
+    // 5. Periodic background polling (every 4s) to ensure data is always fresh
+    const pollInterval = setInterval(() => {
+      loadStudents()
+    }, 4000)
+
+    return () => {
+      if (bc) bc.close()
+      window.removeEventListener('storage', handleStorage)
+      window.removeEventListener('focus', handleFocus)
+      if (supaChannel && supabase) supabase.removeChannel(supaChannel)
+      clearInterval(pollInterval)
+    }
   }, [selectedPanel, selectedCategory, search])
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStoredStudents, saveStoredStudents } from '@/lib/students_store'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { Student } from '@/types'
 
 const CORS_HEADERS = {
@@ -152,6 +153,47 @@ export async function POST(req: NextRequest) {
     }
 
     saveStoredStudents(allStudents)
+
+    // Sync to Supabase in cloud/Vercel for cross-deployment live reflection
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const supabaseRows = updatedStudents.map((s) => ({
+          roll_no: s.roll_no,
+          name: s.name,
+          email: s.email,
+          phone: s.phone,
+          address: s.address,
+          aadhar: s.aadhar,
+          dob: s.dob,
+          gender: s.gender,
+          department: s.department,
+          panel: s.panel,
+          year: s.year,
+          program: s.program,
+          attendance: s.attendance,
+          cca1: s.cca1,
+          cca2: s.cca2,
+          midterm: s.midterm,
+          lca1: s.lca1,
+          lca2: s.lca2,
+          lca3: s.lca3,
+          detained: s.detained,
+          lca1_days_left: s.lca1_days_left,
+          lca1_buffer_left: s.lca1_buffer_left,
+          lca1_detention_pending: s.lca1_detention_pending,
+          lca2_days_left: s.lca2_days_left,
+          lca2_buffer_left: s.lca2_buffer_left,
+          lca2_detention_pending: s.lca2_detention_pending,
+          lca3_days_left: s.lca3_days_left,
+          lca3_buffer_left: s.lca3_buffer_left,
+          lca3_detention_pending: s.lca3_detention_pending,
+          updated_at: new Date().toISOString(),
+        }))
+        await supabase.from('students').upsert(supabaseRows, { onConflict: 'roll_no' })
+      } catch (err) {
+        console.warn('Supabase students upsert warning in admin:', err)
+      }
+    }
 
     return NextResponse.json(
       {

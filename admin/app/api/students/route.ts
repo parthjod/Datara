@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getStoredStudents } from '@/lib/students_store'
+import { getStoredStudents, saveStoredStudents } from '@/lib/students_store'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { Student } from '@/types'
 
 const CORS_HEADERS = {
@@ -19,7 +20,24 @@ export async function GET(req: NextRequest) {
     const category = searchParams.get('category') || 'all'
     const search = (searchParams.get('search') || '').toLowerCase().trim()
 
-    const allStudents = getStoredStudents()
+    let allStudents = getStoredStudents()
+
+    // 1. Fetch live records from Supabase in cloud/Vercel if configured
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: supaStudents, error } = await supabase
+          .from('students')
+          .select('*')
+        if (!error && supaStudents && supaStudents.length > 0) {
+          const supaMap = new Map((supaStudents as any[]).map((s) => [s.roll_no, s]))
+          allStudents = allStudents.map((st) => {
+            const supa = supaMap.get(st.roll_no)
+            return supa ? { ...st, ...supa } : st
+          })
+          saveStoredStudents(allStudents)
+        }
+      } catch {}
+    }
 
     // Calculate overall metrics
     const attendanceDefaultersCount = allStudents.filter((s) => s.attendance < 80).length

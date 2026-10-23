@@ -1,7 +1,15 @@
 import fs from 'fs'
 import path from 'path'
+import os from 'os'
 import { Student, SentEmail, WorkflowState } from '@/types'
 import { generateStudents } from './students'
+import { supabase, isSupabaseConfigured } from './supabase'
+
+const TMP_STUDENTS_FILE = path.join(os.tmpdir(), 'datara_students_data.json')
+
+declare global {
+  var __datara_students: Student[] | undefined
+}
 
 function getFilePath(filename: string): string {
   // If running from teacher/ or admin/, check parent first
@@ -19,12 +27,31 @@ function getFilePath(filename: string): string {
 }
 
 export function getStoredStudents(): Student[] {
+  // 1. In-memory global cache
+  if (globalThis.__datara_students && globalThis.__datara_students.length > 0) {
+    return globalThis.__datara_students
+  }
+
+  // 2. Check /tmp on Vercel serverless
+  try {
+    if (fs.existsSync(TMP_STUDENTS_FILE)) {
+      const raw = fs.readFileSync(TMP_STUDENTS_FILE, 'utf-8')
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        globalThis.__datara_students = parsed
+        return parsed
+      }
+    }
+  } catch {}
+
+  // 3. Fallback: bundled students_data.json
   try {
     const filePath = getFilePath('students_data.json')
     if (fs.existsSync(filePath)) {
       const raw = fs.readFileSync(filePath, 'utf-8')
       const parsed = JSON.parse(raw)
       if (Array.isArray(parsed) && parsed.length > 0) {
+        globalThis.__datara_students = parsed
         return parsed
       }
     }
@@ -39,11 +66,21 @@ export function getStoredStudents(): Student[] {
 }
 
 export function saveStoredStudents(students: Student[]): void {
+  globalThis.__datara_students = students
+
+  // 1. Write to /tmp (always writable on Vercel serverless)
+  try {
+    fs.writeFileSync(TMP_STUDENTS_FILE, JSON.stringify(students, null, 2), 'utf-8')
+  } catch (err) {
+    console.warn('Could not write to tmp students file:', err)
+  }
+
+  // 2. Write to project directory (works in local dev)
   try {
     const filePath = getFilePath('students_data.json')
     fs.writeFileSync(filePath, JSON.stringify(students, null, 2), 'utf-8')
   } catch (err) {
-    console.error('Error saving stored students:', err)
+    // Expected on Vercel due to read-only filesystem
   }
 }
 
